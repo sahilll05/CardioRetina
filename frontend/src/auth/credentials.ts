@@ -56,7 +56,44 @@ export async function hashPassword(password: string): Promise<string> {
 }
 
 /**
- * Verify credentials against configured users
+ * Retrieve registered users from LocalStorage
+ */
+export function getRegisteredUsers(): CredentialUser[] {
+  try {
+    const data = localStorage.getItem('cr_registered_users');
+    if (data) return JSON.parse(data);
+  } catch {}
+  return [];
+}
+
+/**
+ * Register a new user and save to LocalStorage
+ */
+export async function registerUser(name: string, email: string, password: string): Promise<CredentialUser> {
+  const hash = await hashPassword(password);
+  const newUser: CredentialUser = {
+    id: 'usr-' + Date.now(),
+    name,
+    email,
+    role: 'doctor',
+    specialization: 'Clinician',
+    passwordHash: hash,
+  };
+  
+  const existing = getRegisteredUsers();
+  // Check if email already exists
+  if (existing.some(u => u.email.toLowerCase() === email.toLowerCase()) || 
+      CONFIGURED_USERS.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+    throw new Error("Email already registered");
+  }
+  
+  existing.push(newUser);
+  localStorage.setItem('cr_registered_users', JSON.stringify(existing));
+  return newUser;
+}
+
+/**
+ * Verify credentials against configured and registered users
  * Returns the matching user or null
  */
 export async function verifyCredentials(
@@ -64,7 +101,8 @@ export async function verifyCredentials(
   password: string
 ): Promise<CredentialUser | null> {
   const hash = await hashPassword(password);
-  const user = CONFIGURED_USERS.find(
+  const allUsers = [...CONFIGURED_USERS, ...getRegisteredUsers()];
+  const user = allUsers.find(
     (u) => u.email.toLowerCase() === email.toLowerCase() && u.passwordHash === hash
   );
   return user || null;

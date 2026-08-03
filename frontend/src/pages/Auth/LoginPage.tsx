@@ -3,35 +3,49 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { motion } from 'framer-motion';
-import { HeartPulse, Eye, EyeOff, Loader2, Lock, Mail, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HeartPulse, Eye, EyeOff, Loader2, Lock, Mail, AlertCircle, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuthStore } from '@/auth/authStore';
 import {
   verifyCredentials,
+  registerUser,
   generateSessionToken,
   SESSION_TTL,
   REMEMBER_ME_TTL,
 } from '@/auth/credentials';
 
-const loginSchema = z.object({
+const authSchema = z.object({
+  name: z.string().optional(),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-  rememberMe: z.boolean(),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().optional(),
+  rememberMe: z.boolean().optional(),
+}).superRefine((data, ctx) => {
+  if (data.confirmPassword !== undefined && data.password !== data.confirmPassword) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Passwords do not match",
+      path: ["confirmPassword"]
+    });
+  }
 });
 
-type LoginFormData = {
+type AuthFormData = {
+  name?: string;
   email: string;
   password: string;
-  rememberMe: boolean;
+  confirmPassword?: string;
+  rememberMe?: boolean;
 };
 
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuthStore();
+  const [isRegistering, setIsRegistering] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -42,16 +56,23 @@ export function LoginPage() {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema) as any,
-    defaultValues: { email: '', password: '', rememberMe: false },
+  } = useForm<AuthFormData>({
+    resolver: zodResolver(authSchema) as any,
+    defaultValues: { name: '', email: '', password: '', confirmPassword: '', rememberMe: false },
   });
 
   const rememberMe = watch('rememberMe');
 
+  const toggleMode = () => {
+    setIsRegistering(!isRegistering);
+    setAuthError(null);
+    reset({ name: '', email: '', password: '', confirmPassword: '', rememberMe: false });
+  };
+
   const onSubmit = async (data: Record<string, any>) => {
-    const { email, password, rememberMe } = data as LoginFormData;
+    const { name, email, password, rememberMe } = data as AuthFormData;
     setIsLoading(true);
     setAuthError(null);
 
@@ -59,12 +80,28 @@ export function LoginPage() {
       // Simulate a short network delay for UX
       await new Promise((r) => setTimeout(r, 600));
 
-      const user = await verifyCredentials(email, password);
+      let user;
 
-      if (!user) {
-        setAuthError('Invalid email or password. Please try again.');
-        setIsLoading(false);
-        return;
+      if (isRegistering) {
+        if (!name || name.trim() === '') {
+          setAuthError('Name is required for registration.');
+          setIsLoading(false);
+          return;
+        }
+        try {
+          user = await registerUser(name, email, password);
+        } catch (e: any) {
+          setAuthError(e.message || 'Registration failed.');
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        user = await verifyCredentials(email, password);
+        if (!user) {
+          setAuthError('Invalid email or password. Please try again.');
+          setIsLoading(false);
+          return;
+        }
       }
 
       const ttl = rememberMe ? REMEMBER_ME_TTL : SESSION_TTL;
@@ -81,7 +118,7 @@ export function LoginPage() {
         },
         token,
         expiresAt,
-        rememberMe
+        rememberMe || false
       );
 
       navigate(from, { replace: true });
@@ -118,9 +155,13 @@ export function LoginPage() {
           {/* Form */}
           <div className="px-8 py-8">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-800">Welcome back</h2>
+              <h2 className="text-xl font-bold text-slate-800">
+                {isRegistering ? 'Create Account' : 'Welcome back'}
+              </h2>
               <p className="text-slate-500 text-sm mt-1">
-                Sign in to your clinical account to continue.
+                {isRegistering
+                  ? 'Register for a clinical account to continue.'
+                  : 'Sign in to your clinical account to continue.'}
               </p>
             </div>
 
@@ -135,7 +176,32 @@ export function LoginPage() {
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              <AnimatePresence>
+                {isRegistering && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-1.5 overflow-hidden"
+                  >
+                    <Label htmlFor="name" className="text-slate-700 font-medium">
+                      Full Name
+                    </Label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        id="name"
+                        type="text"
+                        placeholder="Dr. Sarah Johnson"
+                        className="pl-10 h-11 border-slate-200 focus-visible:ring-blue-500"
+                        {...register('name')}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Email */}
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-slate-700 font-medium">
@@ -170,7 +236,7 @@ export function LoginPage() {
                     placeholder="••••••••"
                     className="pl-10 pr-10 h-11 border-slate-200 focus-visible:ring-blue-500"
                     {...register('password')}
-                    autoComplete="current-password"
+                    autoComplete={isRegistering ? 'new-password' : 'current-password'}
                   />
                   <button
                     type="button"
@@ -186,47 +252,92 @@ export function LoginPage() {
                 )}
               </div>
 
-              {/* Remember Me */}
-              <div className="flex items-center gap-3">
-                <input
-                  id="rememberMe"
-                  type="checkbox"
-                  className="w-4 h-4 text-blue-600 border-slate-300 rounded cursor-pointer"
-                  {...register('rememberMe')}
-                />
-                <Label
-                  htmlFor="rememberMe"
-                  className="text-slate-600 text-sm font-normal cursor-pointer"
-                >
-                  Keep me signed in for 7 days
-                </Label>
-              </div>
+              <AnimatePresence>
+                {isRegistering && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="space-y-1.5 overflow-hidden pt-1"
+                  >
+                    <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">
+                      Confirm Password
+                    </Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Input
+                        id="confirmPassword"
+                        type={showPassword ? 'text' : 'password'}
+                        placeholder="••••••••"
+                        className="pl-10 h-11 border-slate-200 focus-visible:ring-blue-500"
+                        {...register('confirmPassword')}
+                      />
+                    </div>
+                    {errors.confirmPassword && (
+                      <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Remember Me (Only on login) */}
+              {!isRegistering && (
+                <div className="flex items-center gap-3 pt-2">
+                  <input
+                    id="rememberMe"
+                    type="checkbox"
+                    className="w-4 h-4 text-blue-600 border-slate-300 rounded cursor-pointer"
+                    {...register('rememberMe')}
+                  />
+                  <Label
+                    htmlFor="rememberMe"
+                    className="text-slate-600 text-sm font-normal cursor-pointer"
+                  >
+                    Keep me signed in for 7 days
+                  </Label>
+                </div>
+              )}
 
               {/* Submit */}
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 border-0 mt-2"
+                className="w-full h-11 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 border-0 mt-4"
               >
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing in...
+                    {isRegistering ? 'Creating account...' : 'Signing in...'}
                   </>
+                ) : isRegistering ? (
+                  'Create Account'
                 ) : (
                   'Sign In'
                 )}
               </Button>
             </form>
 
-            {/* Demo credentials notice */}
-            <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs text-slate-500 font-medium mb-2">Demo Credentials</p>
-              <div className="space-y-1 text-xs text-slate-600 font-mono">
-                <p>dr.sarah@cardioretina.ai</p>
-                <p>CardioRetina@2025</p>
-              </div>
+            <div className="mt-6 text-center">
+              <button
+                onClick={toggleMode}
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                {isRegistering
+                  ? 'Already have an account? Sign in'
+                  : "Don't have an account? Register"}
+              </button>
             </div>
+
+            {/* Demo credentials notice - only show on login */}
+            {!isRegistering && (
+              <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <p className="text-xs text-slate-500 font-medium mb-2">Demo Credentials</p>
+                <div className="space-y-1 text-xs text-slate-600 font-mono">
+                  <p>dr.sarah@cardioretina.ai</p>
+                  <p>CardioRetina@2025</p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
