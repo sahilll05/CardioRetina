@@ -592,12 +592,17 @@ Place all files in `backend/ml/weights/`.
 
 ## 📄 License
 
+**Proprietary and Confidential**
+
+This project and its contents are the intellectual property of Sahil Powar. No part of this software may be duplicated, modified, or distributed without express written permission. See the `LICENSE` file for full details.
+
 This project is for research and educational purposes. For clinical deployment, ensure compliance with applicable medical device regulations (FDA, CE marking, etc.).
 
 ---
 
 <div align="center">
 
+**Developed by Sahil Powar**<br/>
 Built with ❤️ using FastAPI · PyTorch · React
 
 </div>
