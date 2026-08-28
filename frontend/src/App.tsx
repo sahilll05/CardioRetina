@@ -7,6 +7,7 @@ import { PatientDetail } from '@/pages/Patients/PatientDetail';
 import { NewAnalysisWizard } from '@/pages/Analysis/NewAnalysisWizard';
 import { AnalysisStatus } from '@/pages/Analysis/AnalysisStatus';
 import { ReportsList } from '@/pages/Reports/ReportsList';
+import { QueueMonitor } from '@/pages/Ingestion/QueueMonitor';
 import { Settings } from '@/pages/Settings/Settings';
 import { Landing } from '@/pages/Landing';
 import { LoginPage } from '@/pages/Auth/LoginPage';
@@ -43,6 +44,7 @@ export default function App() {
           </Route>
 
           <Route path="reports" element={<ReportsList />} />
+          <Route path="ingestion/queue" element={<QueueMonitor />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 

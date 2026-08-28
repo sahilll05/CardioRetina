@@ -30,7 +30,7 @@ class MainPipeline:
         
         try:
             # STEP 1: Quality Check
-            print("🔍 Step 1: Quality Check")
+            print("[INFO] Step 1: Quality Check")
             quality_result = self.quality_model.predict(image_path)
             results["quality"] = quality_result
             
@@ -40,7 +40,7 @@ class MainPipeline:
                 return results
             
             # STEP 2: Vessel Segmentation
-            print("🩸 Step 2: Vessel Segmentation")
+            print("[INFO] Step 2: Vessel Segmentation")
             vessel_result = self.vessel_model.predict(image_path)
             vessel_mask = vessel_result["binary_mask"]
             results["vessel_segmentation"] = {
@@ -48,7 +48,7 @@ class MainPipeline:
             }
             
             # STEP 3: A/V Classification
-            print("🔴🔵 Step 3: A/V Classification")
+            print("[INFO] Step 3: A/V Classification")
             av_result = self.av_model.predict(image_path, vessel_mask)
             artery_mask = av_result["artery_mask"]
             vein_mask = av_result["vein_mask"]
@@ -58,26 +58,26 @@ class MainPipeline:
             }
             
             # STEP 4: Biomarker Extraction
-            print("📊 Step 4: Biomarker Extraction")
+            print("[INFO] Step 4: Biomarker Extraction")
             biomarkers = self.biomarker_extractor.extract_all(
                 vessel_mask, artery_mask, vein_mask
             )
             results["biomarkers"] = biomarkers
             
             # STEP 5: Disease Screening
-            print("🏥 Step 5: Disease Screening")
+            print("[INFO] Step 5: Disease Screening")
             disease_result = self.disease_model.predict(image_path)
             results["disease"] = disease_result
             
             # STEP 6: Risk Assessment
-            print("⚠️ Step 6: Risk Assessment")
+            print("[INFO] Step 6: Risk Assessment")
             risk_result = self.risk_engine.calculate_risk(
                 biomarkers, disease_result, clinical_data
             )
             results["risk"] = risk_result
             
             # STEP 7: Save Masks
-            print("💾 Step 7: Saving Masks")
+            print("[INFO] Step 7: Saving Masks")
             mask_paths = self._save_masks(
                 image_path, vessel_mask, artery_mask, vein_mask
             )
@@ -86,11 +86,11 @@ class MainPipeline:
             results["status"] = "completed"
             results["completed_at"] = datetime.utcnow().isoformat()
             
-            print("✅ Pipeline completed successfully")
+            print("[OK] Pipeline completed successfully")
             return results
             
         except Exception as e:
-            print(f"❌ Pipeline failed: {str(e)}")
+            print(f"[ERROR] Pipeline failed: {str(e)}")
             results["status"] = "failed"
             results["error"] = str(e)
             return results

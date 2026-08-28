@@ -2,12 +2,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   UploadCloud, CheckCircle2, ChevronRight, ChevronLeft,
-  Search, User as UserIcon, Calendar, Plus, Loader2, AlertTriangle, X
+  Search, User as UserIcon, Calendar, Plus, Loader2, X
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePatients, type PatientData } from '@/hooks/usePatients';
@@ -38,12 +34,11 @@ export function NewAnalysisWizard() {
   const { visits, loading: vLoading, fetchPatientVisits, createVisit } = useVisits();
   const { startAnalysis, submitting } = useAnalysis();
 
-  // Pre-fill from URL params (e.g. from PatientDetail "New Analysis" button)
+  // Pre-fill from URL params
   useEffect(() => {
     fetchPatients();
     const prePatientId = searchParams.get('patientId');
     if (prePatientId) {
-      // will be set once patients load
       setSearchQuery(prePatientId);
     }
   }, []);
@@ -128,28 +123,27 @@ export function NewAnalysisWizard() {
   );
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">New Analysis</h1>
-        <p className="text-muted-foreground mt-1">Upload a retinal image to begin AI processing.</p>
+    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 font-mono">
+      <div className="mb-8 border-b border-primary/20 pb-4">
+        <h1 className="text-3xl font-light text-white tracking-widest uppercase">New Analysis</h1>
       </div>
 
       {/* Step Indicator */}
       <div className="flex items-center justify-between relative mb-12">
-        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-border -z-10 -translate-y-1/2" />
+        <div className="absolute top-1/2 left-0 w-full h-[1px] bg-primary/20 -z-10 -translate-y-1/2" />
         {steps.map((step) => {
           const isActive = step.id === currentStep;
           const isCompleted = step.id < currentStep;
           return (
-            <div key={step.id} className="flex flex-col items-center bg-background px-2 sm:px-4">
-              <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center border-2 transition-colors ${
-                isActive ? 'border-primary bg-primary text-primary-foreground' :
-                isCompleted ? 'border-primary bg-primary/10 text-primary' :
-                'border-border bg-background text-muted-foreground'
+            <div key={step.id} className="flex flex-col items-center bg-black px-4">
+              <div className={`w-8 h-8 rounded-none flex items-center justify-center border transition-colors ${
+                isActive ? 'border-primary bg-primary text-black' :
+                isCompleted ? 'border-primary bg-primary/20 text-primary' :
+                'border-primary/20 bg-black text-primary/40'
               }`}>
-                {isCompleted ? <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" /> : <span className="font-semibold text-sm sm:text-base">{step.id}</span>}
+                {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : <span className="text-sm font-bold">{step.id}</span>}
               </div>
-              <span className={`mt-2 text-center text-xs sm:text-sm font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'}`}>
+              <span className={`mt-2 text-center text-xs tracking-widest uppercase ${isActive ? 'text-primary' : 'text-primary/40'}`}>
                 {step.title}
               </span>
             </div>
@@ -157,62 +151,61 @@ export function NewAnalysisWizard() {
         })}
       </div>
 
-      <Card className="shadow-lg min-h-[420px] flex flex-col">
-        <CardContent className="p-8 flex-1">
+      <div className="border border-primary/20 bg-black shadow-2xl min-h-[420px] flex flex-col">
+        <div className="p-8 flex-1">
           <AnimatePresence mode="wait">
 
             {/* Step 1: Patient & Visit Selection */}
             {currentStep === 1 && (
               <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
                 {/* Patient Search */}
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-lg font-semibold flex items-center"><UserIcon className="w-5 h-5 mr-2 text-primary" /> Select Patient</h3>
-                    <Button variant="outline" size="sm" onClick={() => setAddPatientOpen(true)}>
-                      <Plus className="w-3.5 h-3.5 mr-1.5" /> New Patient
-                    </Button>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center border-b border-primary/20 pb-2">
+                    <h3 className="text-sm font-semibold tracking-widest uppercase text-primary flex items-center"><UserIcon className="w-4 h-4 mr-2" /> Select Patient</h3>
+                    <button onClick={() => setAddPatientOpen(true)} className="text-xs text-primary/60 hover:text-primary transition-colors flex items-center uppercase tracking-widest">
+                      <Plus className="w-3 h-3 mr-1" /> New Patient
+                    </button>
                   </div>
 
                   {selectedPatient ? (
-                    <div className="flex items-center justify-between border rounded-lg p-4 bg-primary/5 border-primary">
+                    <div className="flex items-center justify-between border border-primary p-4 bg-primary/5">
                       <div>
-                        <p className="font-semibold">{selectedPatient.name} — {selectedPatient.patient_id}</p>
-                        <p className="text-sm text-muted-foreground">Age: {selectedPatient.age} | {selectedPatient.gender || 'N/A'}</p>
+                        <p className="font-semibold text-white">{selectedPatient.name} <span className="text-primary/60 mx-2">/</span> {selectedPatient.patient_id}</p>
+                        <p className="text-xs text-primary/60 uppercase tracking-widest mt-1">Age: {selectedPatient.age} | {selectedPatient.gender || 'N/A'}</p>
                       </div>
-                      <Button variant="ghost" size="icon" onClick={() => { setSelectedPatient(null); setSelectedVisit(null); }}>
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <button onClick={() => { setSelectedPatient(null); setSelectedVisit(null); }} className="text-primary/40 hover:text-red-500 transition-colors">
+                        <X className="w-5 h-5" />
+                      </button>
                     </div>
                   ) : (
                     <>
                       <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          placeholder="Search patient by name or ID..."
-                          className="pl-9"
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-primary/40" />
+                        <input
+                          placeholder="SEARCH BY NAME OR ID..."
+                          className="w-full pl-10 pr-4 py-3 bg-black border border-primary/20 text-white focus:outline-none focus:border-primary placeholder-primary/30 transition-colors uppercase tracking-widest text-sm"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
                       </div>
                       {pLoading ? (
-                        <div className="flex items-center justify-center h-20 text-muted-foreground">
-                          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading patients...
+                        <div className="flex items-center justify-center h-20 text-primary/40 text-sm tracking-widest uppercase">
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading...
                         </div>
                       ) : (
-                        <div className="max-h-48 overflow-y-auto border rounded-lg divide-y">
+                        <div className="max-h-48 overflow-y-auto border border-primary/20 divide-y divide-primary/10">
                           {filteredPatients.length === 0 ? (
-                            <div className="p-4 text-center text-sm text-muted-foreground">
-                              No patients found. <button className="text-primary underline" onClick={() => setAddPatientOpen(true)}>Create one</button>
+                            <div className="p-4 text-center text-sm text-primary/40 tracking-widest uppercase">
+                              No records found.
                             </div>
                           ) : (
                             filteredPatients.slice(0, 10).map((p) => (
                               <div
                                 key={p.patient_id}
-                                className="p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                                className="p-3 cursor-pointer hover:bg-primary/10 transition-colors text-white"
                                 onClick={() => handleSelectPatient(p)}
                               >
-                                <p className="font-medium text-sm">{p.name} — {p.patient_id}</p>
-                                <p className="text-xs text-muted-foreground">Age: {p.age} | {p.gender || 'N/A'}</p>
+                                <p className="font-medium text-sm">{p.name} <span className="text-primary/40 mx-2">/</span> {p.patient_id}</p>
                               </div>
                             ))
                           )}
@@ -224,46 +217,38 @@ export function NewAnalysisWizard() {
 
                 {/* Visit Selection */}
                 {selectedPatient && (
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-semibold flex items-center"><Calendar className="w-5 h-5 mr-2 text-primary" /> Select Visit</h3>
-                      <Button variant="outline" size="sm" onClick={() => setAddVisitOpen(true)}>
-                        <Plus className="w-3.5 h-3.5 mr-1.5" /> New Visit
-                      </Button>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center border-b border-primary/20 pb-2">
+                      <h3 className="text-sm font-semibold tracking-widest uppercase text-primary flex items-center"><Calendar className="w-4 h-4 mr-2" /> Select Visit</h3>
+                      <button onClick={() => setAddVisitOpen(true)} className="text-xs text-primary/60 hover:text-primary transition-colors flex items-center uppercase tracking-widest">
+                        <Plus className="w-3 h-3 mr-1" /> New Visit
+                      </button>
                     </div>
 
                     {vLoading ? (
-                      <div className="flex items-center justify-center h-20 text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading visits...
+                      <div className="flex items-center justify-center h-20 text-primary/40 text-sm tracking-widest uppercase">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" /> Loading...
                       </div>
                     ) : visits.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg text-muted-foreground gap-3">
-                        <p className="text-sm">No visits for this patient.</p>
-                        <Button size="sm" onClick={() => setAddVisitOpen(true)}>
-                          <Plus className="w-4 h-4 mr-2" /> Create First Visit
-                        </Button>
+                      <div className="flex flex-col items-center justify-center p-6 border border-dashed border-primary/30 text-primary/40 gap-3">
+                        <p className="text-xs uppercase tracking-widest">No visits for this patient.</p>
                       </div>
                     ) : (
                       <div className="space-y-2 max-h-56 overflow-y-auto">
                         {visits.map((v) => (
                           <div
                             key={v.visit_id}
-                            className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                            className={`border p-4 cursor-pointer transition-colors ${
                               selectedVisit?.visit_id === v.visit_id
-                                ? 'border-primary bg-primary/5'
-                                : 'hover:bg-muted/50'
+                                ? 'border-primary bg-primary/10'
+                                : 'border-primary/20 hover:border-primary/50'
                             }`}
                             onClick={() => setSelectedVisit(v)}
                           >
-                            <div className="flex justify-between items-center">
-                              <p className="font-semibold text-sm">{new Date(v.visit_date).toLocaleDateString()}</p>
+                            <div className="flex justify-between items-center text-white">
+                              <p className="font-medium text-sm tracking-widest uppercase">{new Date(v.visit_date).toLocaleDateString()}</p>
                               {selectedVisit?.visit_id === v.visit_id && <CheckCircle2 className="w-4 h-4 text-primary" />}
                             </div>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {v.bp_systolic ? `BP: ${v.bp_systolic}/${v.bp_diastolic} mmHg` : ''}
-                              {v.blood_sugar ? ` · Sugar: ${v.blood_sugar} mg/dL` : ''}
-                              {!v.bp_systolic && !v.blood_sugar ? 'No measurements recorded' : ''}
-                            </p>
                           </div>
                         ))}
                       </div>
@@ -276,43 +261,35 @@ export function NewAnalysisWizard() {
             {/* Step 2: Image Upload */}
             {currentStep === 2 && (
               <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                <div className="bg-muted/50 p-3 rounded-md flex justify-between items-center text-sm font-medium border">
-                  <span>Patient: {selectedPatient?.name}</span>
-                  <span className="text-muted-foreground">Visit: {selectedVisit && new Date(selectedVisit.visit_date).toLocaleDateString()}</span>
+                <div className="p-3 border border-primary/20 flex justify-between items-center text-xs tracking-widest uppercase text-primary/60">
+                  <span>Patient: <span className="text-white">{selectedPatient?.name}</span></span>
+                  <span>Visit: <span className="text-white">{selectedVisit && new Date(selectedVisit.visit_date).toLocaleDateString()}</span></span>
                 </div>
 
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-xl p-12 text-center transition-colors cursor-pointer ${
-                    isDragActive ? 'border-primary bg-primary/5' : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                  className={`border border-dashed p-12 text-center transition-colors cursor-pointer ${
+                    isDragActive ? 'border-primary bg-primary/5' : 'border-primary/40 hover:border-primary hover:bg-primary/5'
                   }`}
                 >
                   <input {...getInputProps()} />
-                  <UploadCloud className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-                  {isDragActive ? (
-                    <p className="text-lg font-medium text-primary">Drop the image here...</p>
-                  ) : (
-                    <div>
-                      <p className="text-lg font-medium mb-1">Drag & drop retinal image</p>
-                      <p className="text-sm text-muted-foreground mb-4">or click to browse files</p>
-                      <Button variant="secondary">Browse Files</Button>
-                    </div>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-4">JPEG, PNG · Max 10MB</p>
+                  <UploadCloud className={`w-12 h-12 mx-auto mb-4 ${isDragActive ? 'text-primary' : 'text-primary/40'}`} />
+                  <p className={`text-sm tracking-widest uppercase ${isDragActive ? 'text-primary' : 'text-primary/60'}`}>
+                    {isDragActive ? 'Drop scan here' : 'Select or drop retinal scan'}
+                  </p>
                 </div>
 
                 {preview && (
-                  <div className="mt-4 flex flex-col items-center">
-                    <p className="text-sm font-medium mb-2 text-success flex items-center">
-                      <CheckCircle2 className="w-4 h-4 mr-1" /> Image ready
-                    </p>
-                    <div className="rounded-lg overflow-hidden border shadow-sm flex justify-center w-full max-w-[320px]">
-                      <img src={preview} alt="Preview" className="h-48 w-full object-cover" />
+                  <div className="mt-6 flex flex-col items-center">
+                    <div className="border border-primary/40 w-full max-w-[320px] relative p-1 bg-primary/5">
+                      <div className="absolute top-2 right-2 flex items-center bg-black/60 px-2 py-1 text-[10px] text-primary uppercase tracking-widest border border-primary/20">
+                        <CheckCircle2 className="w-3 h-3 mr-1" /> Ready
+                      </div>
+                      <img src={preview} alt="Preview" className="h-48 w-full object-cover filter grayscale hover:grayscale-0 transition-all duration-500" />
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">{file?.name} ({(file!.size / 1024 / 1024).toFixed(2)} MB)</p>
-                    <Button variant="ghost" size="sm" className="mt-2 text-muted-foreground" onClick={() => { setFile(null); setPreview(null); }}>
-                      <X className="w-3.5 h-3.5 mr-1.5" /> Remove
-                    </Button>
+                    <button onClick={() => { setFile(null); setPreview(null); }} className="mt-4 text-xs text-red-500 hover:text-red-400 uppercase tracking-widest flex items-center">
+                      <X className="w-3 h-3 mr-1" /> Remove
+                    </button>
                   </div>
                 )}
               </motion.div>
@@ -320,80 +297,67 @@ export function NewAnalysisWizard() {
 
             {/* Step 3: Review */}
             {currentStep === 3 && (
-              <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
+              <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                <div className="grid md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Patient</h4>
-                      <div className="bg-muted/30 p-4 rounded-lg border text-sm space-y-1">
-                        <p><span className="font-medium">Name:</span> {selectedPatient?.name}</p>
-                        <p><span className="font-medium">Age:</span> {selectedPatient?.age}</p>
-                        <p><span className="font-medium">ID:</span> {selectedPatient?.patient_id}</p>
-                        <p><span className="font-medium">Diabetes:</span> {selectedPatient?.diabetes_history ? 'Yes' : 'No'}</p>
-                        <p><span className="font-medium">Hypertension:</span> {selectedPatient?.hypertension ? 'Yes' : 'No'}</p>
-                      </div>
-                    </div>
-                    <div>
-                      <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Visit Data</h4>
-                      <div className="bg-muted/30 p-4 rounded-lg border text-sm space-y-1">
-                        <p><span className="font-medium">Date:</span> {selectedVisit && new Date(selectedVisit.visit_date).toLocaleDateString()}</p>
-                        {selectedVisit?.bp_systolic && <p><span className="font-medium">BP:</span> {selectedVisit.bp_systolic}/{selectedVisit.bp_diastolic} mmHg</p>}
-                        {selectedVisit?.blood_sugar && <p><span className="font-medium">Blood Sugar:</span> {selectedVisit.blood_sugar} mg/dL</p>}
-                        {selectedVisit?.cholesterol && <p><span className="font-medium">Cholesterol:</span> {selectedVisit.cholesterol} mg/dL</p>}
-                        {selectedVisit?.hba1c && <p><span className="font-medium">HbA1c:</span> {selectedVisit.hba1c}%</p>}
+                      <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-3 border-b border-primary/20 pb-2">Target Subject</h4>
+                      <div className="text-sm space-y-2 text-white">
+                        <p><span className="text-primary/60 inline-block w-24">NAME:</span> {selectedPatient?.name}</p>
+                        <p><span className="text-primary/60 inline-block w-24">ID:</span> {selectedPatient?.patient_id}</p>
+                        <p><span className="text-primary/60 inline-block w-24">VISIT:</span> {selectedVisit && new Date(selectedVisit.visit_date).toLocaleDateString()}</p>
                       </div>
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Retinal Image</h4>
+                    <h4 className="text-xs font-bold text-primary uppercase tracking-widest mb-3 border-b border-primary/20 pb-2">Scan Data</h4>
                     {preview ? (
-                      <div className="rounded-lg overflow-hidden border shadow-sm">
-                        <img src={preview} alt="Preview" className="w-full h-48 object-cover" />
-                        <div className="bg-muted p-2 text-xs text-center border-t text-muted-foreground truncate">{file?.name}</div>
+                      <div className="border border-primary/20 bg-primary/5 p-1">
+                        <img src={preview} alt="Preview" className="w-full h-40 object-cover opacity-80" />
+                        <div className="p-2 text-[10px] text-center text-primary/60 truncate uppercase tracking-widest">{file?.name}</div>
                       </div>
                     ) : (
-                      <div className="w-full h-48 bg-muted border rounded-lg flex items-center justify-center text-muted-foreground">No image</div>
+                      <div className="w-full h-40 border border-dashed border-primary/20 flex items-center justify-center text-primary/30 uppercase text-xs tracking-widest">No data</div>
                     )}
                   </div>
-                </div>
-
-                <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg flex items-start gap-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800">
-                    <strong>Note:</strong> AI analysis may take 2–5 minutes depending on image resolution and server load. Do not close this page after submitting.
-                  </p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </CardContent>
+        </div>
 
-        <div className="border-t p-6 bg-muted/20 flex justify-between items-center">
-          <Button variant="outline" onClick={() => setCurrentStep((p) => Math.max(p - 1, 1))} disabled={currentStep === 1}>
-            <ChevronLeft className="w-4 h-4 mr-2" /> Back
-          </Button>
+        <div className="border-t border-primary/20 p-6 flex justify-between items-center bg-black">
+          <button 
+            className="px-6 py-2 text-xs tracking-widest uppercase border border-primary/20 text-primary/60 hover:text-primary hover:border-primary transition-colors disabled:opacity-30 flex items-center"
+            onClick={() => setCurrentStep((p) => Math.max(p - 1, 1))} 
+            disabled={currentStep === 1}
+          >
+            <ChevronLeft className="w-4 h-4 mr-1" /> Back
+          </button>
+          
           {currentStep < 3 ? (
-            <Button
+            <button
+              className="px-6 py-2 text-xs tracking-widest uppercase border border-primary text-primary hover:bg-primary/10 transition-colors disabled:opacity-30 flex items-center"
               onClick={() => setCurrentStep((p) => Math.min(p + 1, 3))}
               disabled={currentStep === 1 ? !canGoToStep2 : currentStep === 2 ? !file : false}
             >
-              Next <ChevronRight className="w-4 h-4 ml-2" />
-            </Button>
+              Next <ChevronRight className="w-4 h-4 ml-1" />
+            </button>
           ) : (
-            <Button
+            <button
               onClick={submitAnalysis}
               disabled={!canSubmit || submitting}
-              className="bg-primary shadow-md"
+              className="px-8 py-2 text-xs font-bold tracking-widest uppercase bg-primary text-black shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:bg-green-400 transition-colors disabled:opacity-50 flex items-center"
             >
               {submitting ? (
-                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Processing...</>
               ) : (
-                'Start Analysis'
+                'Initiate Sequence'
               )}
-            </Button>
+            </button>
           )}
         </div>
-      </Card>
+      </div>
 
       {/* Modals */}
       <AddPatientModal open={addPatientOpen} onClose={() => setAddPatientOpen(false)} onSave={handleCreatePatient} />

@@ -2,16 +2,20 @@ from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.database import Base
-from app.models import patient, visit, analysis
 
-# this is the Alembic Config object
+# Import ALL models so Alembic's autogenerate detects every table.
+# This replaces the old partial imports (patient, visit, analysis).
+import app.models  # noqa: F401 — registers all models with Base.metadata
+
+# This is the Alembic Config object.
 config = context.config
 
-# Interpret the config file for Python logging
+# Interpret the config file for Python logging.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
+
 
 def run_migrations_offline() -> None:
     url = config.get_main_option("sqlalchemy.url")
@@ -25,6 +29,7 @@ def run_migrations_offline() -> None:
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online() -> None:
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
@@ -34,11 +39,13 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata
+            connection=connection,
+            target_metadata=target_metadata,
         )
 
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

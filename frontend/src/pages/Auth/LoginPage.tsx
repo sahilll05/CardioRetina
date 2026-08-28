@@ -129,11 +129,11 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-cyan-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
       {/* Background effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute -bottom-60 -left-40 w-[600px] h-[600px] rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-green-900/20 blur-3xl" />
+        <div className="absolute -bottom-60 -left-40 w-[600px] h-[600px] rounded-full bg-green-800/10 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
@@ -141,24 +141,24 @@ export function LoginPage() {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="bg-black border border-green-900/30 rounded-2xl shadow-2xl shadow-green-900/20 overflow-hidden"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-8 py-8 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-4">
-              <HeartPulse className="w-8 h-8 text-white" />
+          <div className="bg-gradient-to-r from-green-600 to-green-900 px-8 py-8 text-center border-b border-green-900/50">
+            <div className="w-14 h-14 rounded-2xl bg-black/30 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 border border-green-500/20">
+              <HeartPulse className="w-8 h-8 text-green-400" />
             </div>
             <h1 className="text-2xl font-bold text-white">CardioRetina AI</h1>
-            <p className="text-blue-100 text-sm mt-1">Clinical Access Portal</p>
+            <p className="text-green-100 text-sm mt-1 opacity-80">Clinical Access Portal</p>
           </div>
 
           {/* Form */}
           <div className="px-8 py-8">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-800">
+              <h2 className="text-xl font-bold text-slate-200">
                 {isRegistering ? 'Create Account' : 'Welcome back'}
               </h2>
-              <p className="text-slate-500 text-sm mt-1">
+              <p className="text-slate-400 text-sm mt-1">
                 {isRegistering
                   ? 'Register for a clinical account to continue.'
                   : 'Sign in to your clinical account to continue.'}
@@ -169,10 +169,10 @@ export function LoginPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl mb-6"
+                className="flex items-start gap-3 p-4 bg-red-950/30 border border-red-900/50 rounded-xl mb-6"
               >
                 <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-red-700 text-sm">{authError}</p>
+                <p className="text-red-400 text-sm">{authError}</p>
               </motion.div>
             )}
 
@@ -185,16 +185,16 @@ export function LoginPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-1.5 overflow-hidden"
                   >
-                    <Label htmlFor="name" className="text-slate-700 font-medium">
+                    <Label htmlFor="name" className="text-slate-300 font-medium">
                       Full Name
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <Input
                         id="name"
                         type="text"
                         placeholder="Dr. Sarah Johnson"
-                        className="pl-10 h-11 border-slate-200 focus-visible:ring-blue-500"
+                        className="pl-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
                         {...register('name')}
                       />
                     </div>
@@ -204,16 +204,16 @@ export function LoginPage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-slate-700 font-medium">
+                <Label htmlFor="email" className="text-slate-300 font-medium">
                   Email Address
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <Input
                     id="email"
                     type="email"
                     placeholder="dr.name@clinic.com"
-                    className="pl-10 h-11 border-slate-200 focus-visible:ring-blue-500"
+                    className="pl-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
                     {...register('email')}
                     autoComplete="email"
                   />
@@ -225,23 +225,23 @@ export function LoginPage() {
 
               {/* Password */}
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-slate-700 font-medium">
+                <Label htmlFor="password" className="text-slate-300 font-medium">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 h-11 border-slate-200 focus-visible:ring-blue-500"
+                    className="pl-10 pr-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
                     {...register('password')}
                     autoComplete={isRegistering ? 'new-password' : 'current-password'}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-green-500 transition-colors"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -260,16 +260,16 @@ export function LoginPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-1.5 overflow-hidden pt-1"
                   >
-                    <Label htmlFor="confirmPassword" className="text-slate-700 font-medium">
+                    <Label htmlFor="confirmPassword" className="text-slate-300 font-medium">
                       Confirm Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                       <Input
                         id="confirmPassword"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="pl-10 h-11 border-slate-200 focus-visible:ring-blue-500"
+                        className="pl-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
                         {...register('confirmPassword')}
                       />
                     </div>
@@ -286,12 +286,12 @@ export function LoginPage() {
                   <input
                     id="rememberMe"
                     type="checkbox"
-                    className="w-4 h-4 text-blue-600 border-slate-300 rounded cursor-pointer"
+                    className="w-4 h-4 bg-slate-950 border-slate-700 text-green-600 rounded cursor-pointer focus:ring-green-500 focus:ring-offset-black"
                     {...register('rememberMe')}
                   />
                   <Label
                     htmlFor="rememberMe"
-                    className="text-slate-600 text-sm font-normal cursor-pointer"
+                    className="text-slate-400 text-sm font-normal cursor-pointer hover:text-slate-300"
                   >
                     Keep me signed in for 7 days
                   </Label>
@@ -302,7 +302,7 @@ export function LoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-500/25 border-0 mt-4"
+                className="w-full h-11 bg-green-600 hover:bg-green-700 text-black font-semibold rounded-xl shadow-lg shadow-green-900/30 border-0 mt-4"
               >
                 {isLoading ? (
                   <>
@@ -320,7 +320,7 @@ export function LoginPage() {
             <div className="mt-6 text-center">
               <button
                 onClick={toggleMode}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                className="text-sm text-green-500 hover:text-green-400 font-medium transition-colors"
               >
                 {isRegistering
                   ? 'Already have an account? Sign in'
@@ -330,9 +330,9 @@ export function LoginPage() {
 
             {/* Demo credentials notice - only show on login */}
             {!isRegistering && (
-              <div className="mt-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="mt-6 p-4 bg-slate-950 rounded-xl border border-green-900/30">
                 <p className="text-xs text-slate-500 font-medium mb-2">Demo Credentials</p>
-                <div className="space-y-1 text-xs text-slate-600 font-mono">
+                <div className="space-y-1 text-xs text-slate-400 font-mono">
                   <p>dr.sarah@cardioretina.ai</p>
                   <p>CardioRetina@2025</p>
                 </div>
@@ -351,7 +351,7 @@ export function LoginPage() {
           </div>
         </motion.div>
 
-        <p className="text-center text-blue-300/60 text-xs mt-6">
+        <p className="text-center text-green-500/50 text-xs mt-6">
           Access is restricted to authorized clinical staff only.
           <br />
           For support, contact your system administrator.

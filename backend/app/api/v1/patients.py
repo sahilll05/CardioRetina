@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from app.database import get_db
+from app.database import get_sync_db
 from app.models.patient import Patient
 from app.schemas.patient import Patient as PatientSchema, PatientCreate, PatientUpdate
 import uuid
@@ -9,7 +9,7 @@ import uuid
 router = APIRouter()
 
 @router.post("/", response_model=PatientSchema)
-def create_patient(patient: PatientCreate, db: Session = Depends(get_db)):
+def create_patient(patient: PatientCreate, db: Session = Depends(get_sync_db)):
     """Create a new patient"""
     db_patient = Patient(
         patient_id=f"PAT-{uuid.uuid4().hex[:8].upper()}",
@@ -21,7 +21,7 @@ def create_patient(patient: PatientCreate, db: Session = Depends(get_db)):
     return db_patient
 
 @router.get("/{patient_id}", response_model=PatientSchema)
-def get_patient(patient_id: str, db: Session = Depends(get_db)):
+def get_patient(patient_id: str, db: Session = Depends(get_sync_db)):
     """Get patient by patient_id"""
     patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
     if not patient:
@@ -29,13 +29,13 @@ def get_patient(patient_id: str, db: Session = Depends(get_db)):
     return patient
 
 @router.get("/", response_model=List[PatientSchema])
-def list_patients(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+def list_patients(skip: int = 0, limit: int = 100, db: Session = Depends(get_sync_db)):
     """List all patients"""
     patients = db.query(Patient).offset(skip).limit(limit).all()
     return patients
 
 @router.put("/{patient_id}", response_model=PatientSchema)
-def update_patient(patient_id: str, patient_update: PatientUpdate, db: Session = Depends(get_db)):
+def update_patient(patient_id: str, patient_update: PatientUpdate, db: Session = Depends(get_sync_db)):
     """Update patient"""
     patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
     if not patient:
@@ -50,7 +50,7 @@ def update_patient(patient_id: str, patient_update: PatientUpdate, db: Session =
     return patient
 
 @router.delete("/{patient_id}")
-def delete_patient(patient_id: str, db: Session = Depends(get_db)):
+def delete_patient(patient_id: str, db: Session = Depends(get_sync_db)):
     """Delete patient"""
     patient = db.query(Patient).filter(Patient.patient_id == patient_id).first()
     if not patient:

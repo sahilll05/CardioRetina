@@ -21,7 +21,7 @@ class AVInference:
         self.fusion = AVFusion()
         self.image_size = 512
         
-        print(f"✅ A/V model loaded on {self.device}")
+        print(f"[OK] A/V model loaded on {self.device}")
     
     def preprocess(self, image_path):
         """Preprocess for AV model - BGR format, /255 normalization"""

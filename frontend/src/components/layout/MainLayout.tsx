@@ -10,7 +10,7 @@ export function MainLayout() {
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden relative">
         <TopHeader />
-        <main className="flex-1 overflow-y-auto bg-slate-50/50 p-6 relative">
+        <main className="flex-1 overflow-y-auto bg-black p-6 relative">
           <div className="mx-auto max-w-[1440px]">
             <Outlet />
           </div>

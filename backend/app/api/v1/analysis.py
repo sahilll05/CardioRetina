@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
-from app.database import get_db
+from app.database import get_sync_db
 from app.models.visit import Visit
 from app.models.analysis import Analysis
 from app.schemas.analysis import AnalysisResponse, AnalysisResult
@@ -24,7 +24,7 @@ async def start_analysis(
     cholesterol: float = Form(None),
     diabetes_history: bool = Form(False),
     image: UploadFile = File(...),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_sync_db)
 ):
     """Start analysis job"""
     
@@ -75,7 +75,7 @@ async def start_analysis(
     }
 
 @router.get("/{job_id}", response_model=AnalysisResponse)
-def get_analysis_result(job_id: str, db: Session = Depends(get_db)):
+def get_analysis_result(job_id: str, db: Session = Depends(get_sync_db)):
     """Get analysis result"""
     
     analysis = db.query(Analysis).filter(Analysis.job_id == job_id).first()

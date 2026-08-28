@@ -1,16 +1,32 @@
+# ─── Web Framework ────────────────────────────────────────────────────────────
 fastapi>=0.104.1
 uvicorn[standard]>=0.24.0
+
+# ─── Database ─────────────────────────────────────────────────────────────────
 sqlalchemy>=2.0.23
+# psycopg2-binary: retained for Alembic (sync migrations) and Celery fallback
 psycopg2-binary>=2.9.9
+# asyncpg: async PostgreSQL driver for AsyncSession / FastAPI routes
+asyncpg>=0.29.0
 alembic>=1.12.1
+
+# ─── Validation & Settings ────────────────────────────────────────────────────
 pydantic>=2.5.0
 pydantic-settings>=2.1.0
 python-multipart>=0.0.6
+python-dotenv>=1.0.0
+
+# ─── Security ─────────────────────────────────────────────────────────────────
 python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
-python-dotenv>=1.0.0
+# pyotp: TOTP MFA support (optional — system works without it, MFA endpoints fail gracefully)
+pyotp>=2.9.0
+
+# ─── Task Queue ───────────────────────────────────────────────────────────────
 celery>=5.3.4
 redis>=5.0.1
+
+# ─── PyTorch / ML ─────────────────────────────────────────────────────────────
 torch>=2.6.0
 torchvision>=0.21.0
 opencv-python>=4.8.1.78
@@ -19,6 +35,21 @@ Pillow>=10.1.0
 scikit-image>=0.22.0
 scipy>=1.11.4
 matplotlib>=3.8.2
+
+# ─── Report Generation ────────────────────────────────────────────────────────
 reportlab>=4.0.7
+
+# ─── DICOM ────────────────────────────────────────────────────────────────────
+pydicom>=2.4.3
+# pynetdicom: DICOM C-STORE SCP network listener (legacy on-prem camera/PACS support)
+pynetdicom>=2.0.2
+
+# ─── Config ───────────────────────────────────────────────────────────────────
+pyyaml>=6.0.1
+
+# ─── HTTP / Async ─────────────────────────────────────────────────────────────
 aiofiles>=23.2.1
 httpx>=0.25.2
+
+# ─── File Watching (Hot-Folder Ingestion) ─────────────────────────────────────
+watchdog>=3.0.0

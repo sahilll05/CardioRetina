@@ -20,7 +20,7 @@ class VesselInference:
         self.postprocessor = VesselPostprocessor()
         self.image_size = 512
         
-        print(f"✅ Vessel model loaded on {self.device}")
+        print(f"[OK] Vessel model loaded on {self.device}")
     
     def preprocess(self, image_path):
         """Preprocess for vessel model - BGR format, /255 normalization"""

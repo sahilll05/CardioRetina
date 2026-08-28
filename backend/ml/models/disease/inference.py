@@ -28,7 +28,7 @@ class DiseaseInference:
         
         self.preprocessor = DiseasePreprocessor()
         
-        print(f"✅ Disease model loaded on {self.device}")
+        print(f"[OK] Disease model loaded on {self.device}")
     
     def predict(self, image_path):
         """

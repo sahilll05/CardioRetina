@@ -29,7 +29,7 @@ class QualityInference:
         
         self.preprocessor = QualityPreprocessor()
         
-        print(f"✅ Quality model loaded on {self.device}")
+        print(f"[OK] Quality model loaded on {self.device}")
     
     def predict(self, image_path):
         """

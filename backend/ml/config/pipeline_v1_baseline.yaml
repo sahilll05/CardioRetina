@@ -1,0 +1,160 @@
+# CardioRetina AI — v1 Baseline Pipeline Configuration
+#
+# VERSION TAG: v1-baseline
+# ESTABLISHED: 2026-08-28
+# CHANGELOG: compliance/pccp/model_changelog.md
+#
+# RULES (build.md §5.10):
+# - Values here are clinical-behavior parameters, not deployment settings.
+# - Every field matches the currently hard-coded behavior in backend/ml/ as of 2026-08-28.
+#   This is a REFACTOR — not a threshold change — and does NOT itself require a §7.1 benchmark run.
+# - Any future edit to a value in this file MUST go through the §7.1 change-control gate,
+#   same as editing the code directly (candidate branch, benchmark against current baseline on
+#   the fixed golden set, documented rationale, sign-off, changelog entry, version bump through
+#   pipeline_gateway.py).
+# - Config files are committed to version control; never edited in a running deployment.
+
+config_version: "v1-baseline"
+established_date: "2026-08-28"
+changelog_ref: "compliance/pccp/model_changelog.md"
+
+# ─── Quality Check (MobileNetV3-Small) ───────────────────────────────────────
+quality:
+  # Minimum probability for an image to be considered gradable.
+  # Current hard-coded behavior: if quality_score < 0.5 → rejected.
+  threshold: 0.5
+
+  # Temperature scaling factor (1.0 = no scaling — not yet calibrated).
+  # Future calibration against a gradable/ungradable prevalence sample would adjust this.
+  temperature_scaling: 1.0
+
+  # Input image size expected by the MobileNetV3 backbone.
+  input_size: [224, 224]
+
+# ─── Vessel Segmentation (U-Net++) ───────────────────────────────────────────
+vessel:
+  # Input image size expected by the U-Net++ vessel segmentation model.
+  input_size: [512, 512]
+
+  # U-Net++ encoder filter sizes (half-width vs published documentation).
+  filters: [32, 64, 128, 256, 512]
+
+  # Morphological post-processing (currently applied implicitly; values from model defaults).
+  # min_object_size: minimum vessel segment pixel count to retain (smaller = noise).
+  min_object_size: 50
+
+  # hole_fill_area: maximum hole area (pixels) to fill inside vessel masks.
+  hole_fill_area: 25
+
+  # skeletonization_method: algorithm used in biomarker extraction.
+  # Options: "lee" (Lee et al. 1994, default in skimage) | "zhang"
+  skeletonization_method: "lee"
+
+# ─── Artery/Vein Classification & Fusion (U-Net++ 3-class) ─────────────────
+av_fusion:
+  # Input image size expected by the A/V classification model.
+  input_size: [512, 512]
+
+  # Probability thresholds for artery and vein channel softmax outputs.
+  # Pixels with artery_prob >= artery_prob_threshold are classified as artery.
+  artery_prob_threshold: 0.5
+  vein_prob_threshold: 0.5
+
+  # Fusion method: currently logical AND of A/V softmax argmax with vessel binary mask.
+  # Options: "logical_and" | "weighted_and"
+  fusion_method: "logical_and"
+
+  # Fusion channel weights (only used when fusion_method = "weighted_and").
+  # format: [artery_weight, vein_weight, background_weight]
+  weights: [1.0, 1.0, 1.0]
+
+  # Dense CRF refinement toggle (not yet implemented — placeholder for future improvement).
+  crf_refinement: false
+
+# ─── Biomarker Calculation ────────────────────────────────────────────────────
+biomarkers:
+  # ETDRS zone used for AVR caliber measurement.
+  # "B" = annular region between 0.5–1.0 × disc diameter from disc center (standard).
+  # Currently the full mask is used (no zone filtering) — this is the v1-baseline behavior.
+  etdrs_zone: "none"
+
+  # AVR caliper method.
+  # "distance_transform" = current approach: Euclidean distance transform on artery/vein masks
+  #   then average diameter = 2 × mean(dist_transform[skeleton_pixels]).
+  avr_caliper_method: "distance_transform"
+
+  # Tortuosity metric variant.
+  # "arc_chord_ratio" = current approach: arc_length / chord_length per contour, then averaged.
+  # Alternatives (not yet implemented): "chain_code" | "fourier"
+  tortuosity_metric: "arc_chord_ratio"
+
+  # Minimum contour length (pixels) to include in tortuosity averaging.
+  # Current hard-coded value: contours with < 10 points are skipped.
+  tortuosity_min_contour_points: 10
+
+  # Branching angle detection: HoughLines rho and theta resolution.
+  branching_angle_hough_rho: 1
+  branching_angle_hough_theta_deg: 1.0
+  branching_angle_hough_threshold: 5
+
+  # Branching point detection: neighbors > 3 (i.e., kernel sum > 3 on skeleton).
+  branching_point_neighbor_threshold: 3
+
+# ─── Disease Screening (EfficientNet-B3 DR Grading) ──────────────────────────
+disease:
+  # Input image size expected by the EfficientNet-B3 DR grading model.
+  input_size: [300, 300]
+
+  # Number of output classes (DR Grade 0–4).
+  num_classes: 5
+
+  # DR grade at or above which a case is flagged as "referable."
+  # Current behavior: argmax prediction, Grade >= 2 is referable.
+  referable_dr_grade: 2
+
+  # Decision strategy: "argmax" (hard) | "threshold" (probability threshold per class).
+  # v1-baseline uses argmax.
+  decision_strategy: "argmax"
+
+  # sensitivity_specificity_tradeoff placeholder for future threshold optimization.
+  # 0.5 = balanced; < 0.5 favors sensitivity; > 0.5 favors specificity.
+  sensitivity_specificity_tradeoff: 0.5
+
+# ─── CVD Risk Engine (Rule-Based Scoring) ─────────────────────────────────────
+risk:
+  # Factor weights: score added when each condition is met.
+  # Hypertension flag (patient.hypertension boolean) is stored but not yet consumed — marked 0.
+  factor_weights:
+    avr_low: 2           # AVR < avr_threshold
+    tortuosity_high: 2   # tortuosity > tortuosity_threshold
+    vessel_density_low: 1  # vessel_density < vessel_density_threshold
+    dr_grade_2plus: 3    # DR grade >= 2
+    dr_grade_1: 1        # DR grade == 1
+    bp_systolic_high: 2  # bp_systolic > bp_systolic_threshold
+    blood_sugar_high: 2  # blood_sugar > blood_sugar_threshold
+    cholesterol_high: 1  # cholesterol > cholesterol_threshold
+    age_high: 1          # age > age_threshold
+    diabetes_history: 2  # diabetes_history == True
+    hypertension_flag: 0 # patient.hypertension boolean — not yet wired (v1 known gap)
+
+  # Threshold values for each factor.
+  thresholds:
+    avr_threshold: 0.65
+    tortuosity_threshold: 1.2
+    vessel_density_threshold: 0.05
+    bp_systolic_threshold: 140
+    blood_sugar_threshold: 140
+    cholesterol_threshold: 200
+    age_threshold: 60
+
+  # Risk band thresholds (inclusive upper bound for each band).
+  # Score <= low_max → LOW; low_max < score <= moderate_max → MODERATE; > moderate_max → HIGH
+  band_thresholds:
+    low_max: 2
+    moderate_max: 6
+
+  # Fixed confidence values assigned per risk band in v1 rule-based engine.
+  confidence_values:
+    LOW: 0.85
+    MODERATE: 0.80
+    HIGH: 0.90
