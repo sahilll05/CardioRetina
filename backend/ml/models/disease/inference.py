@@ -10,19 +10,28 @@ class DiseaseInference:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = DiseaseModel(num_classes=5)
         
-        # Load weights
+        # Load weights robustly (handle relative path issues)
         model_path = os.path.join(settings.MODEL_WEIGHTS_PATH, "disease_screen.pth")
-        
-        # Load state dict and remap keys
-        state_dict = torch.load(model_path, map_location=self.device)
-        new_state_dict = {}
-        for k, v in state_dict.items():
-            if not k.startswith("backbone."):
-                new_state_dict[f"backbone.{k}"] = v
-            else:
-                new_state_dict[k] = v
-        
-        self.model.load_state_dict(new_state_dict, strict=False)
+        if not os.path.exists(model_path):
+            # Fallback to absolute path relative to this file
+            base_dir = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+            model_path = os.path.join(base_dir, "weights", "disease_screen.pth")
+
+        if os.path.exists(model_path):
+            # Load state dict and remap keys
+            state_dict = torch.load(model_path, map_location=self.device)
+            new_state_dict = {}
+            for k, v in state_dict.items():
+                if not k.startswith("backbone."):
+                    new_state_dict[f"backbone.{k}"] = v
+                else:
+                    new_state_dict[k] = v
+            
+            self.model.load_state_dict(new_state_dict, strict=False)
+            print(f"[OK] Disease model loaded weights from {model_path}")
+        else:
+            print(f"[WARNING] Could not find weights at {model_path}. Initializing with random weights for training.")
+
         self.model.to(self.device)
         self.model.eval()
         

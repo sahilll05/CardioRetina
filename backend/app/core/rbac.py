@@ -42,6 +42,22 @@ async def get_current_user(
     return user
 
 
+async def get_rls_db(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+) -> AsyncSession:
+    """
+    Dependency that enforces RLS by setting the active database session's 
+    tenant context using the authenticated user's organization ID.
+    Must be used in place of get_db for all tenant-sensitive routes.
+    """
+    from sqlalchemy import text
+    await db.execute(text(f"SET LOCAL app.current_org_id = '{current_user.org_id}'"))
+    # Also set role in case we are doing admin-level queries
+    await db.execute(text(f"SET LOCAL app.current_user_role = '{current_user.role.value}'"))
+    return db
+
+
 def require_role(allowed_roles: List[str]):
     """
     Dependency factory: require the current user to have one of the specified roles.

@@ -137,3 +137,19 @@ Copy the template below for every future change-controlled promotion:
 | **Sign-off** | Full Name (Role) — YYYY-MM-DD |
 | **Config Version** | `v1-baseline` or later tag |
 ```
+
+---
+
+### Entry: `v1.1-dr-aptos2019`
+
+| Field | Value |
+|---|---|
+| **Version Tag** | `v1.1-dr-aptos2019` |
+| **Date** | `2026-08-28` |
+| **Component** | `DiseaseInference (EfficientNet-B3)` |
+| **Change Summary** | Fine-tuned 5-class DR grading on 3,662 APTOS 2019 fundus images with PyTorch CUDA AMP. |
+| **Rationale** | Improve Diabetic Retinopathy classification accuracy and clinical grading precision. |
+| **Validation Dataset** | `APTOS 2019 (3,662 images, 5 classes)` |
+| **Benchmark Result** | Accuracy: 91.64%, Final Loss: 0.5886 |
+| **Sign-off** | Sahil Powar (Project Lead) — 2026-08-28 |
+| **Config Version** | `v1-baseline` |

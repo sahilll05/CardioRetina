@@ -31,3 +31,6 @@ backend/ml/weights/*.pth
 # Project documents
 documents/
 
+# Datasets & Weights
+training/datasets/
+*.pth

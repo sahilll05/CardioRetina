@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
-from sqlalchemy.orm import Session
-from app.database import get_sync_db
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from app.core.rbac import get_rls_db, get_current_user
+from app.models.user import User
 from app.models.visit import Visit
 from app.models.analysis import Analysis
 from app.schemas.analysis import AnalysisResponse, AnalysisResult
@@ -24,12 +26,14 @@ async def start_analysis(
     cholesterol: float = Form(None),
     diabetes_history: bool = Form(False),
     image: UploadFile = File(...),
-    db: Session = Depends(get_sync_db)
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_rls_db)
 ):
     """Start analysis job"""
     
     # Validate visit
-    visit = db.query(Visit).filter(Visit.visit_id == visit_id).first()
+    result = await db.execute(select(Visit).where(Visit.visit_id == visit_id))
+    visit = result.scalar_one_or_none()
     if not visit:
         raise HTTPException(status_code=404, detail="Visit not found")
     
@@ -48,13 +52,14 @@ async def start_analysis(
     analysis = Analysis(
         job_id=job_id,
         visit_id=visit.id,
+        org_id=current_user.org_id,
         image_path=image_path,
         status="pending",
         started_at=datetime.utcnow()
     )
     db.add(analysis)
-    db.commit()
-    db.refresh(analysis)
+    await db.commit()
+    await db.refresh(analysis)
     
     # Prepare clinical data
     clinical_data = {
@@ -75,17 +80,22 @@ async def start_analysis(
     }
 
 @router.get("/{job_id}", response_model=AnalysisResponse)
-def get_analysis_result(job_id: str, db: Session = Depends(get_sync_db)):
+async def get_analysis_result(
+    job_id: str, 
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_rls_db)
+):
     """Get analysis result"""
     
-    analysis = db.query(Analysis).filter(Analysis.job_id == job_id).first()
+    result = await db.execute(select(Analysis).where(Analysis.job_id == job_id))
+    analysis = result.scalar_one_or_none()
     if not analysis:
         raise HTTPException(status_code=404, detail="Analysis not found")
     
     # Build response
-    result = None
+    result_obj = None
     if analysis.status == "completed":
-        result = AnalysisResult(
+        result_obj = AnalysisResult(
             status="completed",
             quality={
                 "quality_score": analysis.quality_score,
@@ -110,15 +120,15 @@ def get_analysis_result(job_id: str, db: Session = Depends(get_sync_db)):
             report_url=f"/reports/{os.path.basename(analysis.report_path)}" if analysis.report_path else None
         )
     elif analysis.status == "failed":
-        result = AnalysisResult(
+        result_obj = AnalysisResult(
             status="failed",
             error_message=analysis.error_message
         )
     else:
-        result = AnalysisResult(status=analysis.status)
+        result_obj = AnalysisResult(status=analysis.status)
     
     return AnalysisResponse(
         job_id=job_id,
         status=analysis.status,
-        results=result
+        results=result_obj
     )
