@@ -488,11 +488,20 @@ backend/ml/weights/
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-
 The API will be live at `http://localhost:8000`
 Swagger UI at `http://localhost:8000/docs`
 
-> **Note on Celery**: The task queue is currently configured with `task_always_eager = True`, which means analysis tasks run **synchronously in the same process** — no separate Celery worker is needed. If you need true async processing, comment out those two lines in `app/tasks/analysis_task.py` and run a Redis server + Celery worker.
+**9. Start the Celery ML Worker (In a new terminal)**
+Because deep learning models take time to process, the analysis runs in the background. You must start the Celery worker to pick up jobs from Redis.
+```bash
+cd cardioretina/backend
+
+# On Windows PowerShell:
+$env:PYTHONPATH='.'; .\venv\Scripts\python -m celery -A app.tasks.analysis_task worker --pool=solo --loglevel=info
+
+# On Linux/macOS:
+PYTHONPATH='.' celery -A app.tasks.analysis_task worker --loglevel=info
+```
 
 ---
 
