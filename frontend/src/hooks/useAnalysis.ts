@@ -28,6 +28,12 @@ export interface RiskResult {
 
 export interface AnalysisResult {
   status: string;
+  image_url?: string;
+  masks?: {
+    vessel?: string;
+    av_overlay?: string;
+    [key: string]: any;
+  };
   quality?: QualityResult;
   biomarkers?: BiomarkerResult;
   disease?: DiseaseResult;
