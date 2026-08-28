@@ -52,10 +52,13 @@ Base = declarative_base()
 
 
 # ─── FastAPI dependency (async) ───────────────────────────────────────────────
-async def get_db() -> AsyncSession:
-    """Async session dependency for FastAPI route handlers."""
+async def get_db(org_id: int = None) -> AsyncSession:
+    """Async session dependency for FastAPI route handlers with RLS tenant context."""
     async with AsyncSessionLocal() as session:
         try:
+            if org_id is not None:
+                from sqlalchemy import text
+                await session.execute(text(f"SET LOCAL app.current_org_id = '{org_id}'"))
             yield session
         except Exception:
             await session.rollback()

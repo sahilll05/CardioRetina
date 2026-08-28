@@ -103,6 +103,7 @@ class PipelineGateway:
                 vessel_model=self.vessel_model,
                 av_model=self.av_model,
                 disease_model=self.disease_model,
+                config=self._config,
             )
 
             raw = pipeline.run(image_path, clinical_data)

@@ -9,14 +9,15 @@ from app.config import settings
 class MainPipeline:
     """Main AI pipeline orchestrator"""
     
-    def __init__(self, quality_model, vessel_model, av_model, disease_model):
+    def __init__(self, quality_model, vessel_model, av_model, disease_model, config=None):
         self.quality_model = quality_model
         self.vessel_model = vessel_model
         self.av_model = av_model
         self.disease_model = disease_model
+        self.config = config
         self.biomarker_extractor = BiomarkerExtractor()
         self.risk_engine = RiskEngine()
-    
+
     def run(self, image_path, clinical_data):
         """
         Run complete pipeline
@@ -72,7 +73,7 @@ class MainPipeline:
             # STEP 6: Risk Assessment
             print("[INFO] Step 6: Risk Assessment")
             risk_result = self.risk_engine.calculate_risk(
-                biomarkers, disease_result, clinical_data
+                biomarkers, disease_result, clinical_data, config=self.config
             )
             results["risk"] = risk_result
             

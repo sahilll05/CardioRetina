@@ -1,0 +1,50 @@
+# CardioRetina AI — PyTorch Model Training & Fine-Tuning Configuration
+# Target Hardware: NVIDIA GeForce RTX 4060 GPU (CUDA enabled)
+# Mixed Precision (AMP): Enabled for optimal VRAM efficiency & speed
+
+hardware:
+  device: "cuda"
+  use_amp: true            # Automatic Mixed Precision (FP16)
+  num_workers: 4           # DataLoader workers
+  pin_memory: true
+
+dr_grading_training:
+  backbone: "efficientnet-b3"
+  input_size: [300, 300]
+  num_classes: 5
+  batch_size: 16           # Optimized for 8GB RTX 4060 VRAM
+  epochs: 35
+  learning_rate: 3.0e-4
+  weight_decay: 1.0e-4
+  label_smoothing: 0.1
+  loss_function: "cross_entropy"
+  optimizer: "adamw"
+  scheduler: "cosine_annealing"
+  datasets:
+    pretrain: ["EyePACS"]
+    fine_tune: ["APTOS2019", "DDR", "IDRiD", "Messidor2"]
+  held_out_benchmark: "APTOS_DDR_Messidor2_held_out_split"
+
+av_segmentation_training:
+  architecture: "unetplusplus"
+  input_size: [512, 512]
+  in_channels: 3
+  num_classes: 3           # 0: background, 1: artery, 2: vein
+  batch_size: 8            # 512x512 image resolution on RTX 4060
+  epochs: 50
+  learning_rate: 1.0e-4
+  vessel_aux_loss_weight: 0.3 # Auxiliary loss term for binary vessel skeleton
+  optimizer: "adamw"
+  datasets:
+    primary_finetune: "Fundus-AVSeg"  # 100 high-res annotated images
+    auxiliary: ["RITE", "HRF-AV", "LES-AV"]
+  held_out_benchmark: "Fundus-AVSeg_20_image_test_split"
+
+quality_check_training:
+  backbone: "mobilenetv3_small"
+  input_size: [224, 224]
+  num_classes: 2           # gradable vs ungradable
+  batch_size: 32
+  epochs: 20
+  learning_rate: 5.0e-4
+  held_out_benchmark: "DDR_ungradable_split"

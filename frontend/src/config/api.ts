@@ -17,6 +17,7 @@ api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
     if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
       config.headers['X-Session-Token'] = token;
     }
     return config;
@@ -28,7 +29,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !window.location.pathname.startsWith('/login')) {
       // Token expired or unauthorized — log out and redirect
       useAuthStore.getState().logout();
       window.location.href = '/login';
@@ -47,6 +48,7 @@ apiUpload.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token;
     if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
       config.headers['X-Session-Token'] = token;
     }
     return config;

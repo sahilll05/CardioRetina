@@ -129,8 +129,12 @@ def run_analysis_pipeline(self, job_id: str, image_path: str, clinical_data: dic
         analysis.risk_module_version = result.risk_module_version
         analysis.config_version = result.config_version
         
+        visit = analysis.visit
+        patient = visit.patient if visit else None
+        org_id = patient.org_id if patient else 1
+
         # Log to model monitoring
-        ModelMonitor.log_inference(result, patient.org_id)
+        ModelMonitor.log_inference(result, org_id)
         
         # Save AI outputs
         if result.quality:
