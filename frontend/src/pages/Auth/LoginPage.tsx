@@ -328,16 +328,7 @@ export function LoginPage() {
               </button>
             </div>
 
-            {/* Demo credentials notice - only show on login */}
-            {!isRegistering && (
-              <div className="mt-6 p-4 bg-slate-950 rounded-xl border border-green-900/30">
-                <p className="text-xs text-slate-500 font-medium mb-2">Demo Credentials</p>
-                <div className="space-y-1 text-xs text-slate-400 font-mono">
-                  <p>dr.sarah@cardioretina.ai</p>
-                  <p>CardioRetina@2025</p>
-                </div>
-              </div>
-            )}
+
           </div>
 
           {/* Footer */}
