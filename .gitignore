@@ -27,3 +27,7 @@ backend/ml/weights/*.pth
 *.njsproj
 *.sln
 *.sw?
+
+# Project documents
+documents/
+
