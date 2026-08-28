@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
     Runs table creation and model loading on startup; cleans up on shutdown.
     """
     # Import all models so Base.metadata knows all tables before create_all
-    import app.models  # noqa: F401
+    from app import models  # noqa: F401
 
     # Create tables via async engine
     async with async_engine.begin() as conn:

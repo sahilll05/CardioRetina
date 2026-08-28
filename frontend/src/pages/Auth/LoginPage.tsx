@@ -12,7 +12,6 @@ import { useAuthStore } from '@/auth/authStore';
 import {
   verifyCredentials,
   registerUser,
-  generateSessionToken,
   SESSION_TTL,
   REMEMBER_ME_TTL,
 } from '@/auth/credentials';
@@ -23,14 +22,6 @@ const authSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   confirmPassword: z.string().optional(),
   rememberMe: z.boolean().optional(),
-}).superRefine((data, ctx) => {
-  if (data.confirmPassword !== undefined && data.password !== data.confirmPassword) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Passwords do not match",
-      path: ["confirmPassword"]
-    });
-  }
 });
 
 type AuthFormData = {
@@ -96,32 +87,35 @@ export function LoginPage() {
           return;
         }
       } else {
-        user = await verifyCredentials(email, password);
-        if (!user) {
+        try {
+          const authResult = await verifyCredentials(email, password);
+          const user = authResult.user;
+          const token = authResult.token;
+
+          const ttl = rememberMe ? REMEMBER_ME_TTL : SESSION_TTL;
+          const expiresAt = Date.now() + ttl;
+
+          login(
+            {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              specialization: user.specialization,
+            },
+            token,
+            expiresAt,
+            rememberMe || false
+          );
+
+          navigate(from, { replace: true });
+          return;
+        } catch (e: any) {
           setAuthError('Invalid email or password. Please try again.');
           setIsLoading(false);
           return;
         }
       }
-
-      const ttl = rememberMe ? REMEMBER_ME_TTL : SESSION_TTL;
-      const expiresAt = Date.now() + ttl;
-      const token = generateSessionToken(user.id, expiresAt);
-
-      login(
-        {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          specialization: user.specialization,
-        },
-        token,
-        expiresAt,
-        rememberMe || false
-      );
-
-      navigate(from, { replace: true });
     } catch {
       setAuthError('An unexpected error occurred. Please try again.');
       setIsLoading(false);
@@ -318,14 +312,9 @@ export function LoginPage() {
             </form>
 
             <div className="mt-6 text-center">
-              <button
-                onClick={toggleMode}
-                className="text-sm text-green-500 hover:text-green-400 font-medium transition-colors"
-              >
-                {isRegistering
-                  ? 'Already have an account? Sign in'
-                  : "Don't have an account? Register"}
-              </button>
+              <p className="text-sm text-slate-500">
+                To request an account, contact your system administrator.
+              </p>
             </div>
 
 

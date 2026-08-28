@@ -27,7 +27,6 @@ async def create_visit(
     db_visit = Visit(
         visit_id=f"VIS-{uuid.uuid4().hex[:8].upper()}",
         patient_id=patient.id,
-        org_id=current_user.org_id,
         bp_systolic=visit.bp_systolic,
         bp_diastolic=visit.bp_diastolic,
         blood_sugar=visit.blood_sugar,

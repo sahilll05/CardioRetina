@@ -101,14 +101,20 @@ export function useAnalysis() {
   );
 
   const pollAnalysis = useCallback((jobId: string, onComplete?: (data: AnalysisResponse) => void) => {
+    // Clear any existing polling before starting a new one
+    if (pollingRef.current) clearInterval(pollingRef.current);
+    
     setPolling(true);
+    let isDone = false;
 
     const poll = async () => {
+      if (isDone) return;
       try {
         const res = await api.get<AnalysisResponse>(`/analysis/${jobId}`);
         setAnalysis(res.data);
 
         if (res.data.status === 'completed' || res.data.status === 'failed') {
+          isDone = true;
           if (pollingRef.current) clearInterval(pollingRef.current);
           setPolling(false);
           onComplete?.(res.data);
@@ -128,6 +134,7 @@ export function useAnalysis() {
     pollingRef.current = setInterval(poll, 3000); // then every 3 seconds
 
     return () => {
+      isDone = true;
       if (pollingRef.current) clearInterval(pollingRef.current);
       setPolling(false);
     };

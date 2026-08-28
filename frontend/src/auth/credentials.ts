@@ -1,122 +1,53 @@
-/**
- * CardioRetina AI — Pre-configured User Accounts
- *
- * These are hashed credentials for authorized clinic staff.
- * In production, replace this with a real backend auth endpoint.
- *
- * Passwords are hashed with SHA-256 using SubtleCrypto (browser native).
- *
- * To add a new user, compute SHA-256 of their password and add an entry below.
- * You can compute hashes at: https://emn178.github.io/online-tools/sha256.html
- *
- * Default accounts (CHANGE THESE IN PRODUCTION):
- *   dr.sarah@cardioretina.ai / CardioRetina@2025
- *   admin@cardioretina.ai / Admin@Secure2025
- */
+import { api } from '@/config/api';
 
 export interface CredentialUser {
   id: string;
   name: string;
   email: string;
-  role: 'doctor' | 'admin' | 'technician';
+  role: string;
   specialization?: string;
-  passwordHash: string; // SHA-256 hex
 }
 
-export const CONFIGURED_USERS: CredentialUser[] = [
-  {
-    id: 'usr-001',
-    name: 'Dr. Sarah Johnson',
-    email: 'dr.sarah@cardioretina.ai',
-    role: 'doctor',
-    specialization: 'Ophthalmologist',
-    // SHA-256 of "CardioRetina@2025"
-    passwordHash: '781cb25dcddcd3b682f389d7bb6474552e708c19bca68401e5b0630ab9af3457',
-  },
-  {
-    id: 'usr-002',
-    name: 'Admin User',
-    email: 'admin@cardioretina.ai',
-    role: 'admin',
-    // SHA-256 of "Admin@Secure2025"
-    passwordHash: '176ffae747bcd6f417fca7150ecdfbc3db2cdb767f5597407b250a63a477de74',
-  },
-];
-
-/**
- * Hash a plain-text password using SubtleCrypto (SHA-256)
- * Returns lowercase hex string
- */
-export async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-/**
- * Retrieve registered users from LocalStorage
- */
-export function getRegisteredUsers(): CredentialUser[] {
-  try {
-    const data = localStorage.getItem('cr_registered_users');
-    if (data) return JSON.parse(data);
-  } catch {}
-  return [];
-}
-
-/**
- * Register a new user and save to LocalStorage
- */
 export async function registerUser(name: string, email: string, password: string): Promise<CredentialUser> {
-  const hash = await hashPassword(password);
-  const newUser: CredentialUser = {
-    id: 'usr-' + Date.now(),
-    name,
-    email,
-    role: 'doctor',
-    specialization: 'Clinician',
-    passwordHash: hash,
-  };
-  
-  const existing = getRegisteredUsers();
-  // Check if email already exists
-  if (existing.some(u => u.email.toLowerCase() === email.toLowerCase()) || 
-      CONFIGURED_USERS.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-    throw new Error("Email already registered");
-  }
-  
-  existing.push(newUser);
-  localStorage.setItem('cr_registered_users', JSON.stringify(existing));
-  return newUser;
+  throw new Error("Public registration is disabled. Please contact your system administrator.");
 }
 
-/**
- * Verify credentials against configured and registered users
- * Returns the matching user or null
- */
 export async function verifyCredentials(
   email: string,
   password: string
-): Promise<CredentialUser | null> {
-  const hash = await hashPassword(password);
-  const allUsers = [...CONFIGURED_USERS, ...getRegisteredUsers()];
-  const user = allUsers.find(
-    (u) => u.email.toLowerCase() === email.toLowerCase() && u.passwordHash === hash
-  );
-  return user || null;
+): Promise<{ user: CredentialUser; token: string }> {
+  // 1. Authenticate to get the token using OAuth2 form data
+  const formData = new URLSearchParams();
+  formData.append('username', email);
+  formData.append('password', password);
+
+  const loginResponse = await api.post('/auth/login', formData, {
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+  });
+
+  const token = loginResponse.data.access_token;
+
+  // 2. Fetch the user profile using the token
+  const meResponse = await api.get('/auth/me', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  const userData = meResponse.data;
+  
+  const user: CredentialUser = {
+    id: String(userData.id),
+    name: userData.full_name,
+    email: userData.email,
+    role: userData.role,
+    specialization: 'Clinician',
+  };
+
+  return { user, token };
 }
 
-/**
- * Generate a simple session token (base64 encoded payload + expiry)
- * Not a real JWT — purely for frontend session management
- */
-export function generateSessionToken(userId: string, expiresAt: number): string {
-  const payload = { userId, expiresAt, iat: Date.now() };
-  return btoa(JSON.stringify(payload));
-}
-
-/** Token TTL: 8 hours for session, 7 days for "remember me" */
 export const SESSION_TTL = 8 * 60 * 60 * 1000;
 export const REMEMBER_ME_TTL = 7 * 24 * 60 * 60 * 1000;

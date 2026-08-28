@@ -52,7 +52,6 @@ async def start_analysis(
     analysis = Analysis(
         job_id=job_id,
         visit_id=visit.id,
-        org_id=current_user.org_id,
         image_path=image_path,
         status="pending",
         started_at=datetime.utcnow()

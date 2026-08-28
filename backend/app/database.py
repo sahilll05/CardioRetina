@@ -37,7 +37,7 @@ AsyncSessionLocal = async_sessionmaker(
 )
 
 # ─── Sync engine (fallback — used only by Celery tasks) ──────────────────────
-_sync_url = settings.DATABASE_URL
+_sync_url = settings.DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
 sync_engine = create_engine(
     _sync_url,
     pool_pre_ping=True,
