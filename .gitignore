@@ -30,7 +30,7 @@ backend/ml/weights/*.pth
 
 # Project documents
 documents/
-compliance/
+research/
 
 # Datasets & Weights
 training/datasets/
