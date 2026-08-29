@@ -13,7 +13,7 @@ class QualityInference:
         # Load weights
         model_path = os.path.join(settings.MODEL_WEIGHTS_PATH, "quality_net.pth")
         
-        state_dict = torch.load(model_path, map_location=self.device)
+        state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
         
         # If the state_dict does not have the "backbone." prefix but the model expects it, remap the keys dynamically
         remapped_state_dict = {}

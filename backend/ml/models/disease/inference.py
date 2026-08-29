@@ -19,7 +19,7 @@ class DiseaseInference:
 
         if os.path.exists(model_path):
             # Load state dict and remap keys
-            state_dict = torch.load(model_path, map_location=self.device)
+            state_dict = torch.load(model_path, map_location=self.device, weights_only=False)
             new_state_dict = {}
             for k, v in state_dict.items():
                 if not k.startswith("backbone."):

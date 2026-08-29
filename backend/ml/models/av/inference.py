@@ -14,7 +14,7 @@ class AVInference:
         
         # Load weights
         model_path = os.path.join(settings.MODEL_WEIGHTS_PATH, "av_classify.pth")
-        self.model.load_state_dict(torch.load(model_path, map_location=self.device))
+        self.model.load_state_dict(torch.load(model_path, map_location=self.device, weights_only=False))
         self.model.to(self.device)
         self.model.eval()
         
