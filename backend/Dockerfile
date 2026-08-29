@@ -7,9 +7,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app
 
 # Install critical system dependencies
-# libgl1-mesa-glx and libglib2.0-0 are REQUIRED for OpenCV to run without crashing
+# libgl1 and libglib2.0-0 are REQUIRED for OpenCV to run without crashing
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     gcc \
     libpq-dev \
