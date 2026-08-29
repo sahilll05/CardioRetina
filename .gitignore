@@ -28,9 +28,10 @@ backend/ml/weights/*.pth
 *.sln
 *.sw?
 
-# Project documents
+# Project documents (internal/private)
 documents/
 research/
+# Note: docs/ is intentionally NOT ignored — it contains README screenshots
 
 # Datasets & Weights
 training/datasets/

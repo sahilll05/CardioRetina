@@ -491,17 +491,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 The API will be live at `http://localhost:8000`
 Swagger UI at `http://localhost:8000/docs`
 
-**9. Start the Celery ML Worker (In a new terminal)**
-Because deep learning models take time to process, the analysis runs in the background. You must start the Celery worker to pick up jobs from Redis.
-```bash
-cd cardioretina/backend
-
-# On Windows PowerShell:
-$env:PYTHONPATH='.'; .\venv\Scripts\python -m celery -A app.tasks.analysis_task worker --pool=solo --loglevel=info
-
-# On Linux/macOS:
-PYTHONPATH='.' celery -A app.tasks.analysis_task worker --loglevel=info
-```
+> **Note:** The analysis pipeline runs synchronously in the same FastAPI process (no separate Celery worker needed). When you call `/api/v1/analysis/start`, it processes the image directly and returns the result. This is by design for single-machine deployments.
 
 ---
 
@@ -562,11 +552,19 @@ Place all files in `backend/ml/weights/`.
 
 ## 🖼 Screenshots
 
-> *(Add screenshots of your frontend here — Dashboard, Analysis upload, Results view, PDF Report)*
+### Login — Clinical Access Portal
+![Login Page](docs/screenshots/01_login.png)
 
-| Dashboard | Analysis Results | PDF Report |
-|---|---|---|
-| ![Dashboard]() | ![Results]() | ![Report]() |
+### New Analysis — Upload Retinal Fundus Image
+![New Analysis](docs/screenshots/02_new_analysis.png)
+
+### Analysis Result — MODERATE Cardiovascular Risk
+![Moderate Risk Result](docs/screenshots/03_risk_result_moderate.png)
+*DR Grade 1 (Mild NPDR) with MODERATE cardiovascular risk. Shows A/V ratio, tortuosity, and DR probability bars.*
+
+### Analysis Result — HIGH Cardiovascular Risk
+![High Risk Result](docs/screenshots/04_risk_result_high.png)
+*DR Grade 4 (Proliferative DR) with HIGH cardiovascular risk. Real-time risk reasons listed below the gauge.*
 
 ---
 
@@ -584,10 +582,10 @@ Place all files in `backend/ml/weights/`.
 
 ## 📌 Known Limitations & Notes
 
-- **No Authentication**: All API endpoints are currently open (JWT middleware not yet wired). Do not expose this to the public internet without adding authentication.
-- **Synchronous Pipeline**: With `task_always_eager=True`, analysis requests block until the full pipeline (~5–30s depending on hardware) completes. For production, switch to a real Celery worker.
-- **GPU Recommended**: All models auto-detect CUDA. On CPU, inference is significantly slower.
-- **Hypertension flag**: The `hypertension` boolean on the Patient model is stored but not yet consumed by the risk engine.
+- **Local ML Only**: The 4 AI models require ~600–800 MB RAM at peak inference. This exceeds the free tier of most cloud platforms. Run the backend locally on your own machine for full functionality. Cloud deployment requires a plan with ≥2 GB RAM (e.g., Railway Pro at $5/month).
+- **Synchronous Pipeline**: With `task_always_eager=True`, analysis requests block until the full pipeline (~5–30s on CPU) completes. On a dedicated GPU machine this drops to ~2s per scan.
+- **GPU Recommended**: All models auto-detect CUDA. On CPU, inference is significantly slower (~30s total vs ~2s on GPU).
+- **Hypertension flag**: The `hypertension` boolean on the Patient model is stored but not yet consumed by the risk engine (planned for v1.1).
 
 ---
 
