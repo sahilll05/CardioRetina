@@ -552,19 +552,7 @@ Place all files in `backend/ml/weights/`.
 
 ## 🖼 Screenshots
 
-### Login — Clinical Access Portal
-![Login Page](docs/screenshots/01_login.png)
-
-### New Analysis — Upload Retinal Fundus Image
-![New Analysis](docs/screenshots/02_new_analysis.png)
-
-### Analysis Result — MODERATE Cardiovascular Risk
-![Moderate Risk Result](docs/screenshots/03_risk_result_moderate.png)
-*DR Grade 1 (Mild NPDR) with MODERATE cardiovascular risk. Shows A/V ratio, tortuosity, and DR probability bars.*
-
-### Analysis Result — HIGH Cardiovascular Risk
-![High Risk Result](docs/screenshots/04_risk_result_high.png)
-*DR Grade 4 (Proliferative DR) with HIGH cardiovascular risk. Real-time risk reasons listed below the gauge.*
+> *(Screenshots coming soon)*
 
 ---
 
