@@ -552,7 +552,32 @@ Place all files in `backend/ml/weights/`.
 
 ## 🖼 Screenshots
 
-> *(Screenshots coming soon)*
+<table align="center">
+  <tr>
+    <td align="center">
+      <img src="images/dashboard.png" alt="Dashboard" width="400"/>
+      <br />
+      <b>Dashboard / Overview</b>
+    </td>
+    <td align="center">
+      <img src="images/analysis.png" alt="Analysis" width="400"/>
+      <br />
+      <b>New Analysis / Scanning</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="images/output.png" alt="Output Results" width="400"/>
+      <br />
+      <b>Analysis Output Results</b>
+    </td>
+    <td align="center">
+      <img src="images/reports.png" alt="Reports" width="400"/>
+      <br />
+      <b>Generated PDF Reports List</b>
+    </td>
+  </tr>
+</table>
 
 ---
 
