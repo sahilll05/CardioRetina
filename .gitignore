@@ -34,4 +34,6 @@ research/
 
 # Datasets & Weights
 training/datasets/
+# Ignore pth files EXCEPT the actual model weights we need for deployment
 *.pth
+!backend/ml/weights/*.pth
