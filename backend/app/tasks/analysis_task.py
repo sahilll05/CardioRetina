@@ -94,15 +94,14 @@ def run_analysis_pipeline(self, job_id: str, image_path: str, clinical_data: dic
         analysis.status = "processing"
         db.commit()
         
-        publish_progress(job_id, "processing", 20, "Loading ML models...")
-        models = get_models()
+        publish_progress(job_id, "processing", 20, "Executing memory-efficient ML pipeline...")
         
-        # Instantiate Gateway
+        # Instantiate Gateway with lazy loading
         gateway = PipelineGateway(
-            quality_model=models['quality'],
-            vessel_model=models['vessel'],
-            av_model=models['av'],
-            disease_model=models['disease']
+            quality_model=None,
+            vessel_model=None,
+            av_model=None,
+            disease_model=None
         )
         
         publish_progress(job_id, "processing", 40, "Running AI models...")

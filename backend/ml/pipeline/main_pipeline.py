@@ -32,8 +32,15 @@ class MainPipeline:
         try:
             # STEP 1: Quality Check
             print("[INFO] Step 1: Quality Check")
+            if self.quality_model is None:
+                from ml.models.quality.inference import QualityInference
+                self.quality_model = QualityInference()
             quality_result = self.quality_model.predict(image_path)
             results["quality"] = quality_result
+            
+            # Aggressive memory cleanup
+            del self.quality_model
+            import gc; gc.collect()
             
             if not quality_result["is_gradable"]:
                 results["status"] = "failed"
@@ -42,14 +49,24 @@ class MainPipeline:
             
             # STEP 2: Vessel Segmentation
             print("[INFO] Step 2: Vessel Segmentation")
+            if self.vessel_model is None:
+                from ml.models.vessel.inference import VesselInference
+                self.vessel_model = VesselInference()
             vessel_result = self.vessel_model.predict(image_path)
             vessel_mask = vessel_result["binary_mask"]
             results["vessel_segmentation"] = {
                 "vessel_pixels": int(np.sum(vessel_mask > 0))
             }
             
+            # Aggressive memory cleanup
+            del self.vessel_model
+            gc.collect()
+            
             # STEP 3: A/V Classification
             print("[INFO] Step 3: A/V Classification")
+            if self.av_model is None:
+                from ml.models.av.inference import AVInference
+                self.av_model = AVInference()
             av_result = self.av_model.predict(image_path, vessel_mask)
             artery_mask = av_result["artery_mask"]
             vein_mask = av_result["vein_mask"]
@@ -57,6 +74,10 @@ class MainPipeline:
                 "artery_pixels": int(np.sum(artery_mask > 0)),
                 "vein_pixels": int(np.sum(vein_mask > 0))
             }
+            
+            # Aggressive memory cleanup
+            del self.av_model
+            gc.collect()
             
             # STEP 4: Biomarker Extraction
             print("[INFO] Step 4: Biomarker Extraction")
@@ -67,8 +88,15 @@ class MainPipeline:
             
             # STEP 5: Disease Screening
             print("[INFO] Step 5: Disease Screening")
+            if self.disease_model is None:
+                from ml.models.disease.inference import DiseaseInference
+                self.disease_model = DiseaseInference()
             disease_result = self.disease_model.predict(image_path)
             results["disease"] = disease_result
+            
+            # Aggressive memory cleanup
+            del self.disease_model
+            gc.collect()
             
             # STEP 6: Risk Assessment
             print("[INFO] Step 6: Risk Assessment")
