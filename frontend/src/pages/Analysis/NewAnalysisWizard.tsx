@@ -113,6 +113,15 @@ export function NewAnalysisWizard() {
     });
 
     if (jobId) {
+      // Save to localStorage so the Reports page can find this job
+      const saved: Array<{ job_id: string; patient_name: string }> = JSON.parse(
+        localStorage.getItem('cr_completed_jobs') || '[]'
+      );
+      // Avoid duplicates
+      if (!saved.find((j) => j.job_id === jobId)) {
+        saved.push({ job_id: jobId, patient_name: selectedPatient.name });
+        localStorage.setItem('cr_completed_jobs', JSON.stringify(saved));
+      }
       navigate(`/analysis/${jobId}`);
     }
   };

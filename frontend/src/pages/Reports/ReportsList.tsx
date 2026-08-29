@@ -3,7 +3,6 @@ import { Search, Download, Eye, Loader2, RefreshCw, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { api, API_BASE_URL } from '@/config/api';
-import { usePatients, type PatientData } from '@/hooks/usePatients';
 
 interface AnalysisRecord {
   id: number;
@@ -37,28 +36,13 @@ export function ReportsList() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'HIGH' | 'MODERATE' | 'LOW'>('all');
 
-  const { fetchPatients } = usePatients();
-
   const loadData = async () => {
     setLoading(true);
     try {
-      await api.get<PatientData[]>('/patients/', { params: { limit: 200 } });
-
-      const savedJobs: Array<{ job_id: string; patient_name: string }> = JSON.parse(
-        localStorage.getItem('cr_completed_jobs') || '[]'
-      );
-
-      const results: AnalysisRecord[] = [];
-      for (const job of savedJobs) {
-        try {
-          const aRes = await api.get<any>(`/analysis/${job.job_id}`);
-          if (aRes.data.status === 'completed') {
-            results.push({ ...aRes.data, _patient_name: job.patient_name });
-          }
-        } catch {}
-      }
-
-      setAnalyses(results);
+      // Fetch all analyses directly from the database API
+      const res = await api.get<AnalysisRecord[]>('/analysis/');
+      const completed = res.data.filter((a) => a.status === 'completed');
+      setAnalyses(completed);
     } catch {
       // silently handle
     }
@@ -67,7 +51,6 @@ export function ReportsList() {
 
   useEffect(() => {
     loadData();
-    fetchPatients();
   }, []);
 
   const filtered = analyses.filter((a) => {

@@ -15,6 +15,36 @@ from datetime import datetime
 
 router = APIRouter()
 
+@router.get("/", response_model=list)
+async def list_analyses(
+    limit: int = 100,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_rls_db)
+):
+    """List all analyses, ordered by most recent first"""
+    result = await db.execute(
+        select(Analysis).order_by(Analysis.created_at.desc()).limit(limit)
+    )
+    analyses = result.scalars().all()
+    return [
+        {
+            "id": a.id,
+            "job_id": a.job_id,
+            "visit_id": a.visit_id,
+            "status": a.status,
+            "quality_score": a.quality_score,
+            "av_ratio": a.av_ratio,
+            "dr_grade": a.dr_grade,
+            "risk_level": a.risk_level,
+            "risk_confidence": a.risk_confidence,
+            "report_path": f"/reports/{os.path.basename(a.report_path)}" if a.report_path else None,
+            "started_at": a.started_at.isoformat() if a.started_at else None,
+            "completed_at": a.completed_at.isoformat() if a.completed_at else None,
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+        }
+        for a in analyses
+    ]
+
 @router.post("/start", response_model=dict)
 async def start_analysis(
     patient_id: str = Form(...),
