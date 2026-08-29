@@ -64,7 +64,10 @@ app = FastAPI(
 # NOTE: In production, restrict allow_origins to specific hospital domain(s)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "https://cardioretina.vercel.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
