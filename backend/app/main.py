@@ -28,18 +28,9 @@ async def lifespan(app: FastAPI):
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
-    # Load ML models into app.state (unchanged — same models, same loading logic)
-    from ml.models.quality.inference import QualityInference
-    from ml.models.vessel.inference import VesselInference
-    from ml.models.av.inference import AVInference
-    from ml.models.disease.inference import DiseaseInference
-
-    app.state.quality_model = QualityInference()
-    app.state.vessel_model = VesselInference()
-    app.state.av_model = AVInference()
-    app.state.disease_model = DiseaseInference()
-
-    print("[OK] All ML models loaded successfully")
+    # We no longer load ML models into app.state globally on startup.
+    # This frees up ~350MB of RAM, allowing the Celery tasks to lazy-load them
+    # sequentially without hitting OOM kills on Railway.
     print("[OK] Database tables verified")
 
     yield  # Application runs here
