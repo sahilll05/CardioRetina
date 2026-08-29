@@ -1,0 +1,22 @@
+# Virtual environments
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Local environment files
+.env
+.env.local
+
+# Git
+.git/
+.gitignore
+
+# Project-specific ignored folders
+uploads/
+reports/
+
+# IMPORTANT:
+# We DO NOT ignore ml/weights/*.pth because Railway NEEDS the weights to run the models!
+# However, if you are downloading weights dynamically at startup, you can ignore them.
+# Assuming we package them into the image for simplicity.
