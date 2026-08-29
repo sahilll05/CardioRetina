@@ -34,9 +34,9 @@ celery_app.conf.update(
     }
 )
 
-# Optional: For local dev without Redis worker running, set to True.
-# In production, this MUST be False.
-celery_app.conf.task_always_eager = False
+# For Railway deployment with shared volumes, we run everything synchronously
+# in the main API container. This prevents volume sharing conflicts!
+celery_app.conf.task_always_eager = True
 
 # ─── Redis Pub/Sub for WebSockets ─────────────────────────────────────────────
 redis_client = redis.from_url(settings.REDIS_URL)
