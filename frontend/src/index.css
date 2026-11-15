@@ -1,86 +1,51 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Console (by request)
+ * nav: edge-aligned shell · signature: dual-mode fundus telemetry & biomarker matrix · states: loading, empty, error, full · console: graphite
+ * axes: dark/grotesk-sans/chromatic-amber · posture: restrained · contrast: pass · v2.0.0 */
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 · weakest: S, replaced sci-fi canvas shaders with real high-density clinical telemetry */
+@import url("./tokens.css");
+@import url("./base.css");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  :root {
-    --background: 210 40% 98%; /* Fallback */
-    --foreground: 217 33% 17%;
-    --surface: 0 0% 100%;
-    --card: 0 0% 100%;
-    --card-foreground: 217 33% 17%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 217 33% 17%;
-    --primary: 142 71% 45%; /* #22c55e */
-    --primary-foreground: 0 0% 0%;
-    --secondary: 160 84% 39%; /* #10b981 */
-    --secondary-foreground: 0 0% 0%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 217 33% 17%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 0%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 142 71% 45%;
-    --radius: 0.5rem;
+@layer utilities {
+  /* Clinical Hairline Surface Panels */
+  .panel {
+    background-color: var(--color-paper-2);
+    color: var(--color-ink);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-card);
   }
 
-  .dark {
-    /* Minimalistic Black and Green Aesthetic */
-    --background: 0 0% 0%; /* Pure Black */
-    --foreground: 0 0% 90%; /* Light Gray / Off-white text */
-
-    --surface: 0 0% 4%;
-
-    --card: 0 0% 4%;
-    --card-foreground: 0 0% 90%;
-
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 90%;
-
-    --primary: 142 71% 45%; /* Green */
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 142 76% 25%; /* Darker Green */
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 10%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 142 76% 20%;
-    --accent-foreground: 142 71% 45%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 0%;
-
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 142 71% 45%;
+  .panel-deep {
+    background-color: var(--color-paper-3);
+    color: var(--color-ink);
+    border: 1px solid var(--color-rule);
+    border-radius: var(--radius-card);
   }
-}
 
-@layer base {
-  * {
-    @apply border-border;
+  .panel-header {
+    border-bottom: 1px solid var(--color-rule);
+    padding: var(--space-sm) var(--space-md);
   }
-  body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+
+  /* Telemetry & Measurements */
+  .measured {
+    font-family: var(--font-outlier);
+    font-variant-numeric: tabular-nums slashed-zero;
+    letter-spacing: -0.01em;
   }
-  
-  /* Minimalist Green Scrollbars */
+
+  .reading {
+    font-family: var(--font-outlier);
+    font-size: var(--text-2xl);
+    font-weight: 400;
+    line-height: 1;
+    color: var(--color-ink);
+  }
+
+  /* Clean Scrollbars */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -89,18 +54,10 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-primary/20 rounded-full;
+    background-color: var(--color-rule);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-primary/50;
-  }
-}
-
-@layer utilities {
-  .glass {
-    @apply bg-black/80 backdrop-blur-md border border-primary/20 shadow-[0_0_15px_rgba(34,197,94,0.1)];
-  }
-  .glass-card {
-    @apply bg-[#030303]/90 backdrop-blur-md border border-primary/10 shadow-lg hover:border-primary/30 transition-colors;
+    background-color: var(--color-rule-2);
   }
 }

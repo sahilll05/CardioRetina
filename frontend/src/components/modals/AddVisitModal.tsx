@@ -59,81 +59,85 @@ export function AddVisitModal({ open, patientId, onClose, onSave }: AddVisitModa
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px]">
+      <DialogContent className="sm:max-w-[480px] bg-surface border-border-strong text-foreground">
         <DialogHeader>
-          <DialogTitle>New Clinical Visit</DialogTitle>
-          <DialogDescription>
-            Record today's clinical measurements. All fields are optional but provide better risk assessment.
+          <DialogTitle className="text-base font-medium">Log Clinical Visit</DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
+            Record clinical measurements for today’s consultation. Values feed directly into the cardiovascular risk stratification engine.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3.5">
             <div className="space-y-1.5">
-              <Label htmlFor="bp_systolic">Systolic BP (mmHg)</Label>
+              <Label htmlFor="bp_systolic" className="text-xs text-muted-foreground">Systolic BP (mmHg)</Label>
               <Input
                 id="bp_systolic"
                 type="number"
                 placeholder="120"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
                 {...register('bp_systolic')}
               />
-              {errors.bp_systolic && <p className="text-red-500 text-xs">{errors.bp_systolic.message}</p>}
+              {errors.bp_systolic && <p className="text-destructive text-[11px]">{errors.bp_systolic.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="bp_diastolic">Diastolic BP (mmHg)</Label>
+              <Label htmlFor="bp_diastolic" className="text-xs text-muted-foreground">Diastolic BP (mmHg)</Label>
               <Input
                 id="bp_diastolic"
                 type="number"
                 placeholder="80"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
                 {...register('bp_diastolic')}
               />
-              {errors.bp_diastolic && <p className="text-red-500 text-xs">{errors.bp_diastolic.message}</p>}
+              {errors.bp_diastolic && <p className="text-destructive text-[11px]">{errors.bp_diastolic.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="blood_sugar">Blood Sugar (mg/dL)</Label>
+              <Label htmlFor="blood_sugar" className="text-xs text-muted-foreground">Fasting glucose (mg/dL)</Label>
               <Input
                 id="blood_sugar"
                 type="number"
                 placeholder="100"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
                 {...register('blood_sugar')}
               />
-              {errors.blood_sugar && <p className="text-red-500 text-xs">{errors.blood_sugar.message}</p>}
+              {errors.blood_sugar && <p className="text-destructive text-[11px]">{errors.blood_sugar.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="cholesterol">Cholesterol (mg/dL)</Label>
+              <Label htmlFor="cholesterol" className="text-xs text-muted-foreground">Total cholesterol (mg/dL)</Label>
               <Input
                 id="cholesterol"
                 type="number"
                 placeholder="180"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
                 {...register('cholesterol')}
               />
-              {errors.cholesterol && <p className="text-red-500 text-xs">{errors.cholesterol.message}</p>}
+              {errors.cholesterol && <p className="text-destructive text-[11px]">{errors.cholesterol.message}</p>}
             </div>
             <div className="col-span-2 space-y-1.5">
-              <Label htmlFor="hba1c">HbA1c (%)</Label>
+              <Label htmlFor="hba1c" className="text-xs text-muted-foreground">Glycated hemoglobin HbA1c (%)</Label>
               <Input
                 id="hba1c"
                 type="number"
                 step="0.1"
                 placeholder="5.7"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
                 {...register('hba1c')}
               />
-              {errors.hba1c && <p className="text-red-500 text-xs">{errors.hba1c.message}</p>}
+              {errors.hba1c && <p className="text-destructive text-[11px]">{errors.hba1c.message}</p>}
             </div>
           </div>
 
-          <div className="p-3 bg-blue-50 rounded-lg text-xs text-blue-700 border border-blue-100">
-            <strong>Tip:</strong> These values are used by the AI risk engine. For highest accuracy, enter
-            all available measurements.
+          <div className="p-3 bg-surface-deep rounded text-xs text-muted-foreground border border-border">
+            <span className="font-medium text-foreground">Clinical Note:</span> These quantitative measurements are integrated with retinal microvascular biomarkers during risk fusion.
           </div>
 
-          <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="pt-3 border-t border-border">
+            <Button type="button" variant="outline" size="sm" onClick={onClose} className="h-8 text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Create Visit
+            <Button type="submit" disabled={isSubmitting} size="sm" className="h-8 text-xs">
+              {isSubmitting && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
+              Save Clinical Visit
             </Button>
           </DialogFooter>
         </form>

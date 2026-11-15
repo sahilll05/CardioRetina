@@ -88,40 +88,53 @@ export function AddPatientModal({ open, onClose, onSave, editPatient }: AddPatie
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[520px]">
+      <DialogContent className="sm:max-w-[500px] bg-surface border-border-strong text-foreground">
         <DialogHeader>
-          <DialogTitle>{editPatient ? 'Edit Patient' : 'Register New Patient'}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-base font-medium">
+            {editPatient ? 'Edit Patient Information' : 'Register New Patient Record'}
+          </DialogTitle>
+          <DialogDescription className="text-xs text-muted-foreground">
             {editPatient
-              ? 'Update the patient information below.'
-              : 'Enter patient details to create a new record in the system.'}
+              ? 'Update the clinical records for this patient below.'
+              : 'Enter demographic details to initialize a patient case in the registry.'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3.5">
             <div className="col-span-2 space-y-1.5">
-              <Label htmlFor="name">Full Name *</Label>
-              <Input id="name" placeholder="John Doe" {...register('name')} />
-              {errors.name && <p className="text-red-500 text-xs">{errors.name.message}</p>}
+              <Label htmlFor="name" className="text-xs text-muted-foreground">Full patient name *</Label>
+              <Input
+                id="name"
+                placeholder="Jane Doe"
+                className="h-8 text-xs bg-surface-deep border-border"
+                {...register('name')}
+              />
+              {errors.name && <p className="text-destructive text-[11px]">{errors.name.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="age">Age *</Label>
-              <Input id="age" type="number" placeholder="55" {...register('age')} />
-              {errors.age && <p className="text-red-500 text-xs">{errors.age.message}</p>}
+              <Label htmlFor="age" className="text-xs text-muted-foreground">Age *</Label>
+              <Input
+                id="age"
+                type="number"
+                placeholder="55"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
+                {...register('age')}
+              />
+              {errors.age && <p className="text-destructive text-[11px]">{errors.age.message}</p>}
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="gender">Gender</Label>
+              <Label htmlFor="gender" className="text-xs text-muted-foreground">Biological sex</Label>
               <Select
                 value={watch('gender') || ''}
                 onValueChange={(v) => setValue('gender', v)}
               >
-                <SelectTrigger id="gender">
+                <SelectTrigger id="gender" className="h-8 text-xs bg-surface-deep border-border">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-surface border-border-strong text-xs">
                   <SelectItem value="Male">Male</SelectItem>
                   <SelectItem value="Female">Female</SelectItem>
                   <SelectItem value="Other">Other</SelectItem>
@@ -130,37 +143,56 @@ export function AddPatientModal({ open, onClose, onSave, editPatient }: AddPatie
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="phone">Phone</Label>
-              <Input id="phone" placeholder="+1-234-567-8900" {...register('phone')} />
+              <Label htmlFor="phone" className="text-xs text-muted-foreground">Contact phone</Label>
+              <Input
+                id="phone"
+                placeholder="+1-555-0199"
+                className="h-8 text-xs bg-surface-deep border-border font-mono"
+                {...register('phone')}
+              />
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" placeholder="patient@email.com" {...register('email')} />
-              {errors.email && <p className="text-red-500 text-xs">{errors.email.message}</p>}
+              <Label htmlFor="email" className="text-xs text-muted-foreground">Contact email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="patient@example.org"
+                className="h-8 text-xs bg-surface-deep border-border"
+                {...register('email')}
+              />
+              {errors.email && <p className="text-destructive text-[11px]">{errors.email.message}</p>}
             </div>
           </div>
 
-          <div className="pt-2 border-t">
-            <p className="text-sm font-medium text-slate-700 mb-3">Medical History</p>
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs font-medium text-foreground mb-2.5">Documented Medical History</p>
             <div className="grid grid-cols-2 gap-3">
-              <label className="flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
-                <input type="checkbox" className="w-4 h-4" {...register('diabetes_history')} />
-                <span className="text-sm font-medium">Diabetes History</span>
+              <label className="flex items-center gap-2 p-2.5 border border-border bg-surface-deep rounded cursor-pointer hover:bg-surface transition-colors">
+                <input
+                  type="checkbox"
+                  className="rounded border-border text-primary"
+                  {...register('diabetes_history')}
+                />
+                <span className="text-xs">Diabetes Mellitus</span>
               </label>
-              <label className="flex items-center gap-2.5 p-3 border rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
-                <input type="checkbox" className="w-4 h-4" {...register('hypertension')} />
-                <span className="text-sm font-medium">Hypertension</span>
+              <label className="flex items-center gap-2 p-2.5 border border-border bg-surface-deep rounded cursor-pointer hover:bg-surface transition-colors">
+                <input
+                  type="checkbox"
+                  className="rounded border-border text-primary"
+                  {...register('hypertension')}
+                />
+                <span className="text-xs">Hypertension</span>
               </label>
             </div>
           </div>
 
-          <DialogFooter className="pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="pt-3 border-t border-border">
+            <Button type="button" variant="outline" size="sm" onClick={onClose} className="h-8 text-xs">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-blue-600 hover:bg-blue-700">
-              {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            <Button type="submit" disabled={isSubmitting} size="sm" className="h-8 text-xs">
+              {isSubmitting && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
               {editPatient ? 'Save Changes' : 'Register Patient'}
             </Button>
           </DialogFooter>

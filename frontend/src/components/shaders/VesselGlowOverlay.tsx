@@ -81,6 +81,7 @@ export const VesselGlowOverlay: React.FC<VesselGlowOverlayProps> = ({ maskUrl, c
   return (
     <canvas 
       ref={canvasRef} 
+      aria-hidden="true"
       className={`absolute inset-0 w-full h-full object-cover cursor-crosshair ${className}`}
       onMouseMove={handleMouseMove}
     />

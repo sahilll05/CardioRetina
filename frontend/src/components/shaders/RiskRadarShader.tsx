@@ -79,5 +79,5 @@ export const RiskRadarShader: React.FC<RiskRadarShaderProps> = ({ riskLevel, con
     };
   }, [riskLevel, confidence]);
 
-  return <canvas ref={canvasRef} className={`w-full h-full ${className}`} />;
+  return <canvas ref={canvasRef} aria-hidden="true" className={`w-full h-full ${className}`} />;
 };

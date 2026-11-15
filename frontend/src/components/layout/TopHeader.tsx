@@ -1,57 +1,67 @@
 import { useLocation, Link } from 'react-router-dom';
-import { Bell, UserCircle, ChevronRight } from 'lucide-react';
+import { UserCircle, ChevronRight, ShieldCheck } from 'lucide-react';
 
 export function TopHeader() {
   const location = useLocation();
   const pathnames = location.pathname.split('/').filter((x) => x);
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between px-6 sticky top-0 z-10 bg-black/50 backdrop-blur-sm border-b border-primary/20">
-      <div className="flex items-center">
-        <nav className="flex" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2">
-            <li>
-              <div>
-                <Link to="/dashboard" className="text-primary/60 hover:text-primary transition-colors text-sm font-medium">
-                  Home
-                </Link>
-              </div>
-            </li>
-            {pathnames.map((value, index) => {
-              const last = index === pathnames.length - 1;
-              const to = `/${pathnames.slice(0, index + 1).join('/')}`;
-              const title = value.charAt(0).toUpperCase() + value.slice(1);
+    <header className="flex h-14 shrink-0 items-center justify-between px-6 sticky top-0 z-10 bg-surface/80 backdrop-blur-sm border-b border-border">
+      {/* Breadcrumb Navigation */}
+      <nav className="flex items-center" aria-label="Breadcrumb">
+        <ol className="flex items-center gap-1.5 text-xs">
+          <li>
+            <Link
+              to="/dashboard"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-150 font-normal focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              Dashboard
+            </Link>
+          </li>
+          {pathnames.map((value, index) => {
+            const isLast = index === pathnames.length - 1;
+            const to = `/${pathnames.slice(0, index + 1).join('/')}`;
+            const formatted = value
+              .split('-')
+              .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
 
-              return (
-                <li key={to}>
-                  <div className="flex items-center">
-                    <ChevronRight className="h-4 w-4 shrink-0 text-primary/40" aria-hidden="true" />
-                    <Link
-                      to={to}
-                      className={`ml-2 text-sm font-medium ${
-                        last ? 'text-primary' : 'text-primary/60 hover:text-primary'
-                      } transition-colors`}
-                      aria-current={last ? 'page' : undefined}
-                    >
-                      {title}
-                    </Link>
-                  </div>
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
-      </div>
-      <div className="flex items-center space-x-4">
-        <button type="button" className="relative p-2 text-primary/70 hover:text-primary hover:bg-primary/10 rounded-full transition-colors">
-          <span className="sr-only">View notifications</span>
-          <Bell className="h-5 w-5" aria-hidden="true" />
-          <span className="absolute top-1.5 right-1.5 block h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-        </button>
-        <button type="button" className="flex items-center text-primary/70 hover:text-primary transition-colors">
-          <span className="sr-only">Open user menu</span>
-          <UserCircle className="h-8 w-8" aria-hidden="true" />
-        </button>
+            return (
+              <li key={to} className="flex items-center gap-1.5">
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" aria-hidden="true" />
+                <Link
+                  to={to}
+                  className={`transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${
+                    isLast ? 'text-foreground font-medium' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  aria-current={isLast ? 'page' : undefined}
+                >
+                  {formatted}
+                </Link>
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
+      {/* Telemetry Status & Actions */}
+      <div className="flex items-center gap-4">
+        <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded border border-border bg-surface-deep text-xs text-muted-foreground">
+          <ShieldCheck className="w-3.5 h-3.5 text-ok" />
+          <span>Local Engine Active</span>
+          <span className="text-border-strong">|</span>
+          <span className="font-mono text-[11px] text-cool">v1.4.0</span>
+        </div>
+
+        <div className="flex items-center gap-1">
+          <Link
+            to="/settings"
+            className="p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Account Settings"
+          >
+            <UserCircle className="h-5 w-5" />
+          </Link>
+        </div>
       </div>
     </header>
   );

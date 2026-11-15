@@ -19,70 +19,71 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        sans: ["Host Grotesk", "Inter", ...defaultTheme.fontFamily.sans],
+        mono: ["Atkinson Hyperlegible Mono", ...defaultTheme.fontFamily.mono],
       },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        surface: "hsl(var(--surface))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
-        },
-        warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+        border: "var(--color-rule)",
+        "border-strong": "var(--color-rule-2)",
+        input: "var(--color-rule)",
+        ring: "var(--color-focus)",
+        background: "var(--color-paper)",
+        foreground: "var(--color-ink)",
+        surface: "var(--color-paper-2)",
+        "surface-deep": "var(--color-paper-3)",
+        card: {
+          DEFAULT: "var(--color-paper-2)",
+          foreground: "var(--color-ink)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "var(--color-paper-2)",
+          foreground: "var(--color-ink)",
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+        muted: {
+          DEFAULT: "var(--color-paper-2)",
+          foreground: "var(--color-muted)",
+        },
+        primary: {
+          DEFAULT: "var(--color-accent)",
+          foreground: "var(--color-accent-ink)",
+          soft: "var(--color-accent-soft)",
+        },
+        secondary: {
+          DEFAULT: "var(--color-paper-2)",
+          foreground: "var(--color-ink)",
+        },
+        cool: {
+          DEFAULT: "var(--color-cool)",
+          soft: "var(--color-cool-soft)",
+        },
+        ok: {
+          DEFAULT: "var(--color-ok)",
+          soft: "var(--color-ok-soft)",
+        },
+        success: {
+          DEFAULT: "var(--color-ok)",
+          foreground: "var(--color-accent-ink)",
+          soft: "var(--color-ok-soft)",
+        },
+        warning: {
+          DEFAULT: "var(--color-accent)",
+          foreground: "var(--color-accent-ink)",
+          soft: "var(--color-accent-soft)",
+        },
+        destructive: {
+          DEFAULT: "var(--color-bad)",
+          foreground: "var(--color-ink)",
+          soft: "var(--color-bad-soft)",
+        },
+        bad: {
+          DEFAULT: "var(--color-bad)",
+          soft: "var(--color-bad-soft)",
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
-      keyframes: {
-        "accordion-down": {
-          from: { height: 0 },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: 0 },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
+        lg: "var(--radius-card)",
+        md: "var(--radius-input)",
+        sm: "var(--radius-pill)",
       },
     },
   },

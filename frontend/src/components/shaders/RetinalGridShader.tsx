@@ -64,5 +64,5 @@ export const RetinalGridShader: React.FC<{ className?: string }> = ({ className 
     };
   }, []);
 
-  return <canvas ref={canvasRef} className={`absolute inset-0 pointer-events-none ${className}`} />;
+  return <canvas ref={canvasRef} aria-hidden="true" className={`absolute inset-0 pointer-events-none ${className}`} />;
 };

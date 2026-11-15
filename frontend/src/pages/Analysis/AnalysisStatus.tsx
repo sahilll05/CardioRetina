@@ -2,37 +2,40 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, CheckCircle2, Loader2, Download, XCircle, AlertTriangle,
-  Activity, RefreshCw
+  Activity, RefreshCw, FileText, ChevronRight
 } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useAnalysis } from '@/hooks/useAnalysis';
 import { API_BASE_URL } from '@/config/api';
-import { RiskRadarShader } from '@/components/shaders/RiskRadarShader';
 import { MaskSplitSlider } from '@/components/FundusViewer/MaskSplitSlider';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 const PIPELINE_STEPS = [
-  'Image Quality Check',
+  'Image Quality Assessment',
   'Vessel Segmentation',
-  'A/V Classification',
+  'Artery / Vein Delineation',
   'Biomarker Extraction',
-  'Disease Screening',
-  'Risk Assessment',
-  'Report Generation',
+  'Diabetic Retinopathy Screening',
+  'Cardiovascular Risk Stratification',
+  'Diagnostic Report Generation',
 ];
 
 const DR_LABELS: Record<number, string> = {
-  0: 'No DR',
-  1: 'Mild NPDR',
-  2: 'Moderate NPDR',
-  3: 'Severe NPDR',
-  4: 'Proliferative DR',
+  0: 'No Apparent Retinopathy',
+  1: 'Mild Non-Proliferative (NPDR)',
+  2: 'Moderate Non-Proliferative (NPDR)',
+  3: 'Severe Non-Proliferative (NPDR)',
+  4: 'Proliferative Retinopathy (PDR)',
 };
 
-const BIOMARKER_REF: Record<string, { label: string; unit: string; min?: number; max?: number; higherIsBad?: boolean }> = {
-  av_ratio: { label: 'A/V Ratio', unit: '', min: 0.65, max: 0.80 },
-  vessel_density: { label: 'Vessel Density', unit: '', min: 0.10, max: 0.15 },
-  tortuosity: { label: 'Tortuosity', unit: '', max: 1.20, higherIsBad: true },
-  branching_angle: { label: 'Branching Angle', unit: '°', min: 85, max: 95 },
+const BIOMARKER_REF: Record<
+  string,
+  { label: string; unit: string; min?: number; max?: number; range: string; higherIsBad?: boolean }
+> = {
+  av_ratio: { label: 'Arteriolar-to-Venular Ratio (A/V)', unit: '', min: 0.65, max: 0.80, range: '0.65 – 0.80' },
+  vessel_density: { label: 'Vessel Area Density', unit: '', min: 0.10, max: 0.15, range: '0.10 – 0.15' },
+  tortuosity: { label: 'Vascular Tortuosity Index', unit: '', max: 1.20, range: '< 1.20', higherIsBad: true },
+  branching_angle: { label: 'Bifurcation Branching Angle', unit: '°', min: 85, max: 95, range: '85° – 95°' },
 };
 
 function biomarkerStatus(key: string, value: number): 'normal' | 'warning' | 'abnormal' {
@@ -47,12 +50,6 @@ function biomarkerStatus(key: string, value: number): 'normal' | 'warning' | 'ab
   return 'normal';
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  normal: 'text-primary border-primary bg-primary/10',
-  warning: 'text-yellow-500 border-yellow-500 bg-yellow-500/10',
-  abnormal: 'text-red-500 border-red-500 bg-red-500/10',
-};
-
 export function AnalysisStatus() {
   const { jobId } = useParams<{ jobId: string }>();
   const { analysis, getAnalysis, pollAnalysis, stopPolling, getReportUrl } = useAnalysis();
@@ -63,7 +60,10 @@ export function AnalysisStatus() {
     if (!jobId) return;
 
     getAnalysis(jobId).then((data) => {
-      if (!data) { setLoadError(true); return; }
+      if (!data) {
+        setLoadError(true);
+        return;
+      }
       if (data.status === 'pending' || data.status === 'processing') {
         pollingCleanup.current = pollAnalysis(jobId);
       }
@@ -81,73 +81,102 @@ export function AnalysisStatus() {
 
   if (loadError) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-primary/40 font-mono gap-4 uppercase tracking-widest">
-        <XCircle className="h-10 w-10 text-red-500/60" />
-        <p>Analysis job not found.</p>
-        <Link to="/dashboard" className="border border-primary/20 px-4 py-2 hover:bg-primary/10 hover:text-primary transition-colors flex items-center"><ArrowLeft className="h-4 w-4 mr-2" />Return to Base</Link>
+      <div className="panel p-8 text-center text-muted-foreground text-xs space-y-3 max-w-md mx-auto my-12">
+        <XCircle className="h-8 w-8 text-destructive mx-auto" />
+        <h2 className="text-sm font-medium text-foreground">Analysis Record Not Found</h2>
+        <p>The requested analysis ID could not be retrieved from the database.</p>
+        <Button asChild variant="outline" size="sm" className="text-xs">
+          <Link to="/dashboard">
+            <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Return to dashboard
+          </Link>
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 max-w-[1200px] mx-auto font-mono">
-      <div className="flex justify-between items-center border-b border-primary/20 pb-4">
+    <div className="space-y-6 max-w-6xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-border">
         <div>
-          <h1 className="text-3xl font-light text-white tracking-widest uppercase">
-            {!analysis ? 'Initializing...' :
-             status === 'processing' || status === 'pending' ? 'Processing Sequence' :
-             status === 'completed' ? 'Analysis Complete' :
-             'Sequence Failed'}
-          </h1>
-          <p className="text-primary/60 mt-1 text-xs tracking-widest uppercase">ID: {jobId}</p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-medium text-foreground tracking-tight">
+              {!analysis
+                ? 'Initializing Pipeline...'
+                : status === 'processing' || status === 'pending'
+                ? 'Processing Retinal Analysis'
+                : status === 'completed'
+                ? 'Diagnostic Analysis Complete'
+                : 'Pipeline Execution Failed'}
+            </h1>
+            {status === 'completed' && <Badge variant="ok">Completed</Badge>}
+            {(status === 'processing' || status === 'pending') && (
+              <Badge variant="cool">Active Pipeline</Badge>
+            )}
+            {status === 'failed' && <Badge variant="destructive">Failed</Badge>}
+          </div>
+          <p className="text-xs text-muted-foreground font-mono mt-0.5">
+            Analysis Job ID: {jobId}
+          </p>
         </div>
-        <div className="flex gap-4">
-          <Link to="/dashboard" className="px-4 py-2 text-xs tracking-widest uppercase border border-primary/20 text-primary/60 hover:text-primary hover:border-primary transition-colors flex items-center">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Exit
-          </Link>
+
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline" size="sm" className="text-xs h-8">
+            <Link to="/dashboard">
+              <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Exit
+            </Link>
+          </Button>
+
           {status === 'completed' && reportUrl && (
-            <a href={reportUrl} target="_blank" rel="noopener noreferrer" download className="px-4 py-2 text-xs tracking-widest uppercase bg-primary text-black hover:bg-green-400 shadow-[0_0_15px_rgba(34,197,94,0.3)] transition-colors flex items-center font-bold">
-              <Download className="mr-2 h-4 w-4" /> Export Data
-            </a>
+            <Button asChild size="sm" className="text-xs h-8">
+              <a href={reportUrl} target="_blank" rel="noopener noreferrer" download>
+                <Download className="mr-1.5 h-3.5 w-3.5" /> Export PDF Report
+              </a>
+            </Button>
           )}
         </div>
       </div>
 
-      {/* Processing view */}
+      {/* Processing State View */}
       {(status === 'pending' || status === 'processing' || !analysis) && (
-        <div className="grid md:grid-cols-2 gap-8">
-          <div className="border border-primary/20 bg-black min-h-[300px] flex items-center justify-center relative overflow-hidden">
-            <div className="absolute inset-0 bg-primary/5" />
-            <div className="relative w-48 h-48">
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-0 rounded-full border-4 border-primary/10 border-t-primary"
-              />
-              <motion.div
-                animate={{ rotate: -360 }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-                className="absolute inset-4 rounded-full border-4 border-primary/5 border-t-primary/50"
-              />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-primary">
-                <Activity className="w-8 h-8 mb-2 animate-pulse" />
-                <span className="text-xs tracking-widest uppercase font-bold">Active</span>
-              </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          <div className="panel p-8 flex flex-col items-center justify-center text-center space-y-4">
+            <div className="w-16 h-16 rounded border border-border bg-surface-deep flex items-center justify-center text-primary">
+              <Activity className="w-8 h-8 animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-base font-medium text-foreground">
+                Inference In Progress
+              </h2>
+              <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+                Executing sequential neural models. Peak RAM is guarded by active garbage collection.
+              </p>
+            </div>
+            <div className="font-mono text-xs text-cool flex items-center gap-1.5">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Awaiting telemetry stream…</span>
             </div>
           </div>
 
-          <div className="border border-primary/20 bg-black p-6 flex flex-col">
-            <h3 className="text-sm font-bold text-primary tracking-widest uppercase mb-6 flex items-center border-b border-primary/20 pb-2">
-              <RefreshCw className="w-4 h-4 animate-spin text-primary mr-2" /> Pipeline Status
-            </h3>
-            <div className="space-y-4 flex-1">
+          <div className="panel overflow-hidden">
+            <div className="panel-header">
+              <h3 className="text-xs font-medium text-foreground flex items-center gap-2">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-primary" />
+                Pipeline Execution Steps
+              </h3>
+            </div>
+            <div className="p-4 divide-y divide-border text-xs">
               {PIPELINE_STEPS.map((step, idx) => (
-                <div key={step} className="flex items-center gap-4 text-sm">
-                  <div className="w-6 h-6 border border-primary/30 flex items-center justify-center bg-primary/5">
-                    <Loader2 className="w-3 h-3 text-primary animate-spin" />
+                <div key={step} className="py-2.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-[11px] text-muted-foreground w-4">
+                      0{idx + 1}
+                    </span>
+                    <span className="text-foreground">{step}</span>
                   </div>
-                  <span className="text-primary/70 uppercase tracking-widest text-xs">{step}</span>
-                  <span className="ml-auto text-[10px] text-primary animate-pulse tracking-widest uppercase">Processing</span>
+                  <span className="text-[11px] text-cool font-mono flex items-center gap-1">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Running
+                  </span>
                 </div>
               ))}
             </div>
@@ -155,18 +184,28 @@ export function AnalysisStatus() {
         </div>
       )}
 
-      {/* Completed view */}
+      {/* Completed Results View */}
       {status === 'completed' && results && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-          
-          {/* Fundus Viewer */}
+        <div className="space-y-6">
+          {/* Fundus Visual Explorer */}
           {results.image_url && results.masks && (
-            <div className="border border-primary/20 bg-black p-1">
-              <div className="px-4 py-2 border-b border-primary/20 text-xs font-bold text-primary tracking-widest uppercase bg-primary/5">
-                Fundus Explorer
+            <div className="panel overflow-hidden">
+              <div className="panel-header flex items-center justify-between">
+                <div>
+                  <h2 className="text-xs font-medium text-foreground">
+                    Fundus Telemetry Explorer
+                  </h2>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Interactive vessel split comparison (Original color photograph vs segmented vasculature)
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+                  <span>512 × 512 px</span>
+                </div>
               </div>
-              <div className="p-4">
-                <MaskSplitSlider 
+
+              <div className="p-4 bg-surface-deep/30">
+                <MaskSplitSlider
                   rawUrl={`${API_BASE_URL}${results.image_url}`}
                   vesselMaskUrl={`${API_BASE_URL}${results.masks.vessel}`}
                   avOverlayUrl={`${API_BASE_URL}${results.masks.av_overlay || results.masks.vessel}`}
@@ -175,165 +214,230 @@ export function AnalysisStatus() {
             </div>
           )}
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-8">
-              {/* Quality & Risk */}
-              <div className="grid grid-cols-2 gap-4">
-                {results.quality && (
-                  <div className="border border-primary/20 p-4 bg-black">
-                    <p className="text-[10px] font-bold text-primary/60 tracking-widest uppercase mb-1">Quality Index</p>
-                    <div className="text-2xl text-white font-light">{(results.quality.quality_score * 100).toFixed(0)}%</div>
-                    <p className={`text-xs uppercase tracking-widest mt-2 ${results.quality.is_gradable ? 'text-primary' : 'text-red-500'}`}>
-                      {results.quality.is_gradable ? 'Valid Scan' : 'Invalid Scan'}
-                    </p>
-                  </div>
-                )}
-                {results.risk && (
-                  <div className="border border-primary/20 p-4 bg-black">
-                    <p className="text-[10px] font-bold text-primary/60 tracking-widest uppercase mb-1">Risk Level</p>
-                    <div className={`text-2xl font-light ${results.risk.risk_level === 'HIGH' ? 'text-red-500' : results.risk.risk_level === 'MODERATE' ? 'text-yellow-500' : 'text-primary'}`}>
-                      {results.risk.risk_level}
-                    </div>
-                    <p className="text-xs text-primary/60 uppercase tracking-widest mt-2">
-                      Conf: {(results.risk.confidence * 100).toFixed(0)}%
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Radar Shader */}
-              {results.risk && (
-                <div className="border border-primary/20 bg-black p-6 flex flex-col items-center">
-                  <div className="text-xs font-bold text-primary/60 tracking-widest uppercase mb-6 w-full text-center border-b border-primary/20 pb-2">
-                    Visual Risk Analysis
-                  </div>
-                  <div className="w-48 h-48 relative flex items-center justify-center">
-                    <RiskRadarShader 
-                      riskLevel={results.risk.risk_level as any} 
-                      confidence={results.risk.confidence} 
-                      className="absolute inset-0"
-                    />
-                    <div className="z-10 text-xl font-light text-white tracking-widest uppercase">
-                      {results.risk.risk_level}
-                    </div>
-                  </div>
-                  {results.risk.reasons.length > 0 && (
-                    <div className="w-full mt-6 space-y-2">
-                      {results.risk.reasons.map((r, i) => (
-                        <div key={i} className="flex items-start gap-2 text-[10px] uppercase tracking-widest text-primary/70">
-                          <AlertTriangle className="w-3 h-3 text-yellow-500 shrink-0" />
-                          <span>{r}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+          {/* Diagnostic Key Metrics Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Image Quality Score */}
+            {results.quality && (
+              <div className="panel p-5 space-y-2">
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>Image Quality Score</span>
+                  <Badge variant={results.quality.is_gradable ? 'ok' : 'destructive'}>
+                    {results.quality.is_gradable ? 'Clinically Gradable' : 'Sub-Optimal Quality'}
+                  </Badge>
                 </div>
-              )}
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="reading">
+                    {(results.quality.quality_score * 100).toFixed(1)}%
+                  </span>
+                  <span className="text-xs text-muted-foreground font-mono">confidence</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground pt-1 border-t border-border">
+                  MobileNetV3 optical clarity &amp; foveal illumination check.
+                </p>
+              </div>
+            )}
 
-              {/* DR Screening */}
+            {/* Cardiovascular Risk Stratification */}
+            {results.risk && (
+              <div className="panel p-5 space-y-2">
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>Systemic CV Risk Tier</span>
+                  <Badge
+                    variant={
+                      results.risk.risk_level === 'HIGH'
+                        ? 'destructive'
+                        : results.risk.risk_level === 'MODERATE'
+                        ? 'warning'
+                        : 'ok'
+                    }
+                  >
+                    {results.risk.risk_level} RISK
+                  </Badge>
+                </div>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="reading font-mono">
+                    {(results.risk.confidence * 100).toFixed(0)}%
+                  </span>
+                  <span className="text-xs text-muted-foreground font-mono">model confidence</span>
+                </div>
+                <p className="text-[11px] text-muted-foreground pt-1 border-t border-border">
+                  Microvascular biomarkers fused with clinical history.
+                </p>
+              </div>
+            )}
+
+            {/* Diabetic Retinopathy Grade */}
+            {results.disease && (
+              <div className="panel p-5 space-y-2">
+                <div className="flex justify-between items-center text-xs text-muted-foreground">
+                  <span>Diabetic Retinopathy</span>
+                  <Badge variant={results.disease.dr_grade > 1 ? 'warning' : 'ok'}>
+                    Grade {results.disease.dr_grade}
+                  </Badge>
+                </div>
+                <div className="flex items-baseline gap-2 mt-2">
+                  <span className="text-sm font-medium text-foreground">
+                    {DR_LABELS[results.disease.dr_grade] || `Grade ${results.disease.dr_grade}`}
+                  </span>
+                </div>
+                <p className="text-[11px] text-muted-foreground pt-1 border-t border-border">
+                  EfficientNet-B3 5-class international grading scale.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Details Row: Extracted Biomarkers & DR Class Distribution */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Quantitative Biomarkers Table */}
+            {results.biomarkers && (
+              <div className="panel overflow-hidden">
+                <div className="panel-header">
+                  <h3 className="text-xs font-medium text-foreground">
+                    Quantitative Vascular Biomarkers
+                  </h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-surface-deep/60 text-muted-foreground border-b border-border text-[11px]">
+                      <tr>
+                        <th className="px-4 py-2 font-normal">Biomarker</th>
+                        <th className="px-4 py-2 font-normal">Measured</th>
+                        <th className="px-4 py-2 font-normal">Reference</th>
+                        <th className="px-4 py-2 font-normal text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {Object.entries(results.biomarkers).map(([key, val]) => {
+                        if (val == null) return null;
+                        const ref = BIOMARKER_REF[key];
+                        if (!ref) return null;
+                        const st = biomarkerStatus(key, val as number);
+                        return (
+                          <tr key={key} className="hover:bg-surface-deep/30 transition-colors">
+                            <td className="px-4 py-3 font-medium text-foreground">
+                              {ref.label}
+                            </td>
+                            <td className="px-4 py-3 font-mono text-foreground font-medium">
+                              {typeof val === 'number' ? val.toFixed(3) : val}
+                              {ref.unit}
+                            </td>
+                            <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">
+                              {ref.range}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <Badge
+                                variant={
+                                  st === 'abnormal'
+                                    ? 'destructive'
+                                    : st === 'warning'
+                                    ? 'warning'
+                                    : 'ok'
+                                }
+                                className="text-[10px]"
+                              >
+                                {st === 'abnormal'
+                                  ? 'Abnormal'
+                                  : st === 'warning'
+                                  ? 'Borderline'
+                                  : 'Normal'}
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* DR Probability Distribution & Clinical Notes */}
+            <div className="space-y-4">
               {results.disease && (
-                <div className="border border-primary/20 bg-black p-6">
-                  <div className="text-xs font-bold text-primary/60 tracking-widest uppercase mb-4 border-b border-primary/20 pb-2">
-                    DR Screening Results
+                <div className="panel p-5 space-y-4">
+                  <div className="flex justify-between items-center border-b border-border pb-3">
+                    <h3 className="text-xs font-medium text-foreground">
+                      DR Class Probabilities
+                    </h3>
+                    <span className="font-mono text-[11px] text-muted-foreground">
+                      Top score: {(results.disease.dr_probability * 100).toFixed(1)}%
+                    </span>
                   </div>
-                  <div className="flex justify-between items-end mb-6">
-                    <div>
-                      <div className="text-3xl font-light text-white">Grade {results.disease.dr_grade}</div>
-                      <div className="text-primary text-xs tracking-widest uppercase mt-1">{DR_LABELS[results.disease.dr_grade]}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-white">{(results.disease.dr_probability * 100).toFixed(1)}%</div>
-                      <div className="text-primary/50 text-[10px] tracking-widest uppercase">Confidence</div>
-                    </div>
-                  </div>
-                  <div className="space-y-3">
+
+                  <div className="space-y-2.5">
                     {results.disease.class_probabilities.map((prob, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className="w-12 text-[10px] text-primary/60 tracking-widest uppercase">Gr {i}</span>
-                        <div className="flex-1 h-[2px] bg-primary/10 relative">
+                      <div key={i} className="space-y-1 text-xs">
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted-foreground">
+                            Grade {i} ({DR_LABELS[i]?.split(' ')[0] || `Class ${i}`})
+                          </span>
+                          <span className="font-mono text-foreground">
+                            {(prob * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                        <div className="h-1.5 w-full bg-surface-deep rounded-full overflow-hidden border border-border">
                           <div
-                            className="absolute top-0 left-0 h-full bg-primary transition-all duration-1000"
-                            style={{ width: `${prob * 100}%` }}
+                            className={`h-full rounded-full ${
+                              i === results.disease?.dr_grade ? 'bg-primary' : 'bg-muted-foreground/30'
+                            }`}
+                            style={{ width: `${Math.max(2, prob * 100)}%` }}
                           />
                         </div>
-                        <span className="w-8 text-right text-[10px] text-white tracking-widest">{(prob * 100).toFixed(0)}%</span>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
-            </div>
 
-            <div className="space-y-8">
-              {/* Biomarkers */}
-              {results.biomarkers && (
-                <div className="border border-primary/20 bg-black overflow-hidden">
-                  <div className="px-6 py-4 border-b border-primary/20 text-xs font-bold text-primary tracking-widest uppercase bg-primary/5">
-                    Extracted Biomarkers
-                  </div>
-                  <div className="p-4">
-                    <table className="w-full text-sm">
-                      <thead className="text-[10px] text-primary/40 tracking-widest uppercase">
-                        <tr>
-                          <th className="px-2 py-2 text-left font-normal">Metric</th>
-                          <th className="px-2 py-2 text-left font-normal">Value</th>
-                          <th className="px-2 py-2 text-right font-normal">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-primary/10">
-                        {Object.entries(results.biomarkers).map(([key, val]) => {
-                          if (val == null) return null;
-                          const ref = BIOMARKER_REF[key];
-                          if (!ref) return null;
-                          const st = biomarkerStatus(key, val as number);
-                          return (
-                            <tr key={key} className="hover:bg-primary/5 transition-colors group">
-                              <td className="px-2 py-3 text-xs tracking-widest uppercase text-primary/80 group-hover:text-primary transition-colors">{ref.label}</td>
-                              <td className="px-2 py-3 text-white font-light">{typeof val === 'number' ? val.toFixed(3) : val}{ref.unit}</td>
-                              <td className="px-2 py-3 text-right">
-                                <span className={`inline-block px-2 py-1 text-[10px] uppercase tracking-widest border ${STATUS_COLOR[st]}`}>
-                                  {st}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
+              {/* Risk Justifications */}
+              {results.risk?.reasons && results.risk.reasons.length > 0 && (
+                <div className="panel p-4 bg-surface-deep/40 space-y-2">
+                  <h4 className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-warning" />
+                    <span>Clinical Risk Justifications</span>
+                  </h4>
+                  <ul className="space-y-1.5 text-xs text-muted-foreground">
+                    {results.risk.reasons.map((r, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-muted-foreground font-mono">·</span>
+                        <span>{r}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
-
-              {/* Actions */}
-              <div className="flex gap-4">
-                <Link to="/analysis/new" className="flex-1 py-3 border border-primary/30 text-center text-xs tracking-widest uppercase text-primary hover:bg-primary/10 transition-colors">
-                  Run New Scan
-                </Link>
-                <Link to="/reports" className="flex-1 py-3 border border-primary/30 text-center text-xs tracking-widest uppercase text-primary hover:bg-primary/10 transition-colors">
-                  View Records
-                </Link>
-              </div>
             </div>
           </div>
-        </motion.div>
+
+          {/* Quick Actions Row */}
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Button asChild size="sm" className="text-xs h-8">
+              <Link to="/analysis/new">Run Another Scan</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="text-xs h-8">
+              <Link to="/reports">View All Patient Reports</Link>
+            </Button>
+          </div>
+        </div>
       )}
 
-      {/* Failed view */}
+      {/* Failed Execution State */}
       {status === 'failed' && (
-        <div className="border border-red-500/30 bg-black max-w-2xl mx-auto mt-8 p-10 flex flex-col items-center text-center relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-red-500" />
-          <XCircle className="w-16 h-16 text-red-500 mb-6 animate-pulse" />
-          <h2 className="text-2xl font-light mb-2 text-white uppercase tracking-widest">Analysis Failed</h2>
-          <p className="text-red-400/80 mb-6 text-sm tracking-widest uppercase">
-            {results?.error_message || 'System fault detected during processing.'}
+        <div className="panel p-8 max-w-xl mx-auto text-center space-y-4">
+          <XCircle className="w-10 h-10 text-destructive mx-auto" />
+          <h2 className="text-base font-medium text-foreground">Pipeline Execution Failed</h2>
+          <p className="text-xs text-muted-foreground">
+            {results?.error_message ||
+              'An unexpected error occurred during neural inference. Please verify the retinal scan format and retry.'}
           </p>
-          <div className="flex gap-4">
-            <Link to="/analysis/new" className="px-6 py-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs tracking-widest uppercase hover:bg-red-500/20 transition-colors">
-              Retry Upload
-            </Link>
-            <Link to="/dashboard" className="px-6 py-3 border border-primary/20 text-primary/60 text-xs tracking-widest uppercase hover:text-primary hover:border-primary transition-colors">
-              Base Return
-            </Link>
+          <div className="flex justify-center gap-3 pt-2">
+            <Button asChild size="sm" className="text-xs">
+              <Link to="/analysis/new">Retry Upload</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="text-xs">
+              <Link to="/dashboard">Dashboard</Link>
+            </Button>
           </div>
         </div>
       )}

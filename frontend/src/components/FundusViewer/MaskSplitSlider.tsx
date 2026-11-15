@@ -7,19 +7,23 @@ interface MaskSplitSliderProps {
   className?: string;
 }
 
-export const MaskSplitSlider: React.FC<MaskSplitSliderProps> = ({ 
-  rawUrl, vesselMaskUrl, avOverlayUrl, className 
+export const MaskSplitSlider: React.FC<MaskSplitSliderProps> = ({
+  rawUrl,
+  vesselMaskUrl,
+  avOverlayUrl,
+  className = '',
 }) => {
   const [sliderPos, setSliderPos] = useState(50);
   const [leftImage, setLeftImage] = useState<string>(rawUrl);
   const [rightImage, setRightImage] = useState<string>(avOverlayUrl);
-  
+
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>) => {
+  const handleMouseMove = (
+    e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>
+  ) => {
     if (!containerRef.current) return;
-    
-    // Only update on drag (left click held) or touch
+
     if (e.type === 'mousemove' && (e as React.MouseEvent).buttons !== 1) return;
 
     const rect = containerRef.current.getBoundingClientRect();
@@ -29,73 +33,67 @@ export const MaskSplitSlider: React.FC<MaskSplitSliderProps> = ({
   };
 
   return (
-    <div className={`flex flex-col gap-4 ${className}`}>
+    <div className={`flex flex-col gap-3 ${className}`}>
       {/* Controls */}
-      <div className="flex gap-2 justify-center">
-        <select 
-          className="bg-input text-foreground text-sm rounded px-2 py-1"
-          value={leftImage} 
-          onChange={e => setLeftImage(e.target.value)}
+      <div className="flex items-center gap-2 justify-center text-xs">
+        <select
+          className="bg-surface border border-border text-foreground text-xs rounded px-2 py-1 focus:outline-none focus:border-border-strong"
+          value={leftImage}
+          onChange={(e) => setLeftImage(e.target.value)}
         >
-          <option value={rawUrl}>Raw Fundus</option>
-          <option value={vesselMaskUrl}>Vessel Mask</option>
-          <option value={avOverlayUrl}>A/V Overlay</option>
+          <option value={rawUrl}>Raw Color Fundus</option>
+          <option value={vesselMaskUrl}>Vessel Segmentation Mask</option>
+          <option value={avOverlayUrl}>Artery/Vein Classification</option>
         </select>
-        <span className="text-muted-foreground text-sm flex items-center">vs</span>
-        <select 
-          className="bg-input text-foreground text-sm rounded px-2 py-1"
-          value={rightImage} 
-          onChange={e => setRightImage(e.target.value)}
+        <span className="text-muted-foreground text-xs font-mono">/</span>
+        <select
+          className="bg-surface border border-border text-foreground text-xs rounded px-2 py-1 focus:outline-none focus:border-border-strong"
+          value={rightImage}
+          onChange={(e) => setRightImage(e.target.value)}
         >
-          <option value={rawUrl}>Raw Fundus</option>
-          <option value={vesselMaskUrl}>Vessel Mask</option>
-          <option value={avOverlayUrl}>A/V Overlay</option>
+          <option value={rawUrl}>Raw Color Fundus</option>
+          <option value={vesselMaskUrl}>Vessel Segmentation Mask</option>
+          <option value={avOverlayUrl}>Artery/Vein Classification</option>
         </select>
       </div>
 
       {/* Slider Container */}
-      <div 
+      <div
         ref={containerRef}
-        className="relative w-full aspect-square md:aspect-[4/3] bg-black overflow-hidden rounded-lg cursor-col-resize select-none touch-none"
+        className="relative w-full aspect-square md:aspect-[16/10] bg-surface-deep overflow-hidden rounded border border-border cursor-col-resize select-none touch-none max-h-[460px]"
         onMouseMove={handleMouseMove}
         onTouchMove={handleMouseMove}
       >
         {/* Right Image (Background) */}
-        <img 
-          src={rightImage} 
-          alt="Right view" 
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        <img
+          src={rightImage}
+          alt="Right layer"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
         />
 
-        {/* Left Image (Clipped) */}
-        <div 
-          className="absolute inset-0 overflow-hidden pointer-events-none"
-          style={{ width: `${sliderPos}%` }}
-        >
-          <img 
-            src={leftImage} 
-            alt="Left view" 
-            className="absolute inset-0 w-full h-full object-cover max-w-none pointer-events-none"
-            style={{ width: containerRef.current ? containerRef.current.offsetWidth : '100vw' }}
-          />
-        </div>
+        {/* Left Image (Clipped via CSS polygon) */}
+        <img
+          src={leftImage}
+          alt="Left layer"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+          style={{ clipPath: `polygon(0 0, ${sliderPos}% 0, ${sliderPos}% 100%, 0 100%)` }}
+        />
 
         {/* Divider Line */}
-        <div 
-          className="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_rgba(0,0,0,0.5)] pointer-events-none transform -translate-x-1/2"
+        <div
+          className="absolute top-0 bottom-0 w-0.5 bg-primary pointer-events-none transform -translate-x-1/2"
           style={{ left: `${sliderPos}%` }}
         >
-          {/* Thumb */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-6 h-6 bg-white rounded-full shadow-md flex items-center justify-center">
-            <div className="w-4 h-1 flex flex-col justify-between items-center gap-1">
-              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-              <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-            </div>
+          {/* Handle */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-5 h-5 bg-surface border border-primary text-primary rounded-full shadow-sm flex items-center justify-center font-mono text-[9px]">
+            ↔
           </div>
         </div>
       </div>
-      
-      <p className="text-xs text-center text-muted-foreground">Drag to compare layers</p>
+
+      <p className="text-[11px] text-center text-muted-foreground">
+        Click and drag divider to compare segmented vasculature against raw optical fundus.
+      </p>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HeartPulse, Eye, EyeOff, Loader2, Lock, Mail, AlertCircle, User } from 'lucide-react';
+import { HeartPulse, Eye, EyeOff, Loader2, Lock, Mail, AlertCircle, User, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -68,8 +68,7 @@ export function LoginPage() {
     setAuthError(null);
 
     try {
-      // Simulate a short network delay for UX
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 400));
 
       let user;
 
@@ -89,7 +88,7 @@ export function LoginPage() {
       } else {
         try {
           const authResult = await verifyCredentials(email, password);
-          const user = authResult.user;
+          user = authResult.user;
           const token = authResult.token;
 
           const ttl = rememberMe ? REMEMBER_ME_TTL : SESSION_TTL;
@@ -105,13 +104,12 @@ export function LoginPage() {
             },
             token,
             expiresAt,
-            rememberMe || false
+            !!rememberMe
           );
 
           navigate(from, { replace: true });
-          return;
         } catch (e: any) {
-          setAuthError('Invalid email or password. Please try again.');
+          setAuthError(e.message || 'Invalid email or password.');
           setIsLoading(false);
           return;
         }
@@ -123,54 +121,39 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-[500px] h-[500px] rounded-full bg-green-900/20 blur-3xl" />
-        <div className="absolute -bottom-60 -left-40 w-[600px] h-[600px] rounded-full bg-green-800/10 blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-md">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="bg-black border border-green-900/30 rounded-2xl shadow-2xl shadow-green-900/20 overflow-hidden"
-        >
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-sm">
+        <div className="panel border-border-strong overflow-hidden shadow-lg">
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-600 to-green-900 px-8 py-8 text-center border-b border-green-900/50">
-            <div className="w-14 h-14 rounded-2xl bg-black/30 backdrop-blur-sm flex items-center justify-center mx-auto mb-4 border border-green-500/20">
-              <HeartPulse className="w-8 h-8 text-green-400" />
+          <div className="p-6 border-b border-border bg-surface-deep text-center">
+            <div className="w-10 h-10 rounded border border-border-strong bg-surface flex items-center justify-center mx-auto mb-3 text-primary">
+              <HeartPulse className="w-5 h-5" />
             </div>
-            <h1 className="text-2xl font-bold text-white">CardioRetina AI</h1>
-            <p className="text-green-100 text-sm mt-1 opacity-80">Clinical Access Portal</p>
+            <h1 className="text-base font-semibold text-foreground">CardioRetina</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Clinical Diagnostics Portal</p>
           </div>
 
           {/* Form */}
-          <div className="px-8 py-8">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-slate-200">
-                {isRegistering ? 'Create Account' : 'Welcome back'}
+          <div className="p-6 space-y-4">
+            <div>
+              <h2 className="text-sm font-medium text-foreground">
+                {isRegistering ? 'Register clinician account' : 'Sign in to workstation'}
               </h2>
-              <p className="text-slate-400 text-sm mt-1">
+              <p className="text-xs text-muted-foreground mt-0.5">
                 {isRegistering
-                  ? 'Register for a clinical account to continue.'
-                  : 'Sign in to your clinical account to continue.'}
+                  ? 'Enter credentials to create your local clinical profile.'
+                  : 'Enter your clinical credentials to continue.'}
               </p>
             </div>
 
             {authError && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-start gap-3 p-4 bg-red-950/30 border border-red-900/50 rounded-xl mb-6"
-              >
-                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
-                <p className="text-red-400 text-sm">{authError}</p>
-              </motion.div>
+              <div className="flex items-start gap-2.5 p-3 rounded border border-destructive/30 bg-destructive/10 text-xs text-foreground">
+                <AlertCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                <p>{authError}</p>
+              </div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5" noValidate>
               <AnimatePresence>
                 {isRegistering && (
                   <motion.div
@@ -179,16 +162,16 @@ export function LoginPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-1.5 overflow-hidden"
                   >
-                    <Label htmlFor="name" className="text-slate-300 font-medium">
+                    <Label htmlFor="name" className="text-xs text-muted-foreground">
                       Full Name
                     </Label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                       <Input
                         id="name"
                         type="text"
                         placeholder="Dr. Sarah Johnson"
-                        className="pl-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
+                        className="pl-9 h-9 text-xs bg-surface-deep border-border"
                         {...register('name')}
                       />
                     </div>
@@ -198,51 +181,51 @@ export function LoginPage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-slate-300 font-medium">
+                <Label htmlFor="email" className="text-xs text-muted-foreground">
                   Email Address
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <Input
                     id="email"
                     type="email"
-                    placeholder="dr.name@clinic.com"
-                    className="pl-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
+                    placeholder="doctor@hospital.org"
+                    className="pl-9 h-9 text-xs bg-surface-deep border-border"
                     {...register('email')}
                     autoComplete="email"
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+                  <p className="text-destructive text-[11px] mt-1">{errors.email.message}</p>
                 )}
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-slate-300 font-medium">
+                <Label htmlFor="password" className="text-xs text-muted-foreground">
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <Input
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
+                    className="pl-9 pr-9 h-9 text-xs bg-surface-deep border-border font-mono"
                     {...register('password')}
                     autoComplete={isRegistering ? 'new-password' : 'current-password'}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-green-500 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                     tabIndex={-1}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password.message}</p>
+                  <p className="text-destructive text-[11px] mt-1">{errors.password.message}</p>
                 )}
               </div>
 
@@ -254,40 +237,40 @@ export function LoginPage() {
                     exit={{ opacity: 0, height: 0 }}
                     className="space-y-1.5 overflow-hidden pt-1"
                   >
-                    <Label htmlFor="confirmPassword" className="text-slate-300 font-medium">
+                    <Label htmlFor="confirmPassword" className="text-xs text-muted-foreground">
                       Confirm Password
                     </Label>
                     <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                       <Input
                         id="confirmPassword"
                         type={showPassword ? 'text' : 'password'}
                         placeholder="••••••••"
-                        className="pl-10 h-11 bg-slate-950 border-slate-800 text-slate-200 focus-visible:ring-green-500 focus-visible:border-green-500 placeholder:text-slate-600"
+                        className="pl-9 h-9 text-xs bg-surface-deep border-border font-mono"
                         {...register('confirmPassword')}
                       />
                     </div>
                     {errors.confirmPassword && (
-                      <p className="text-red-500 text-xs mt-1">{errors.confirmPassword.message}</p>
+                      <p className="text-destructive text-[11px] mt-1">{errors.confirmPassword.message}</p>
                     )}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Remember Me (Only on login) */}
+              {/* Remember Me */}
               {!isRegistering && (
-                <div className="flex items-center gap-3 pt-2">
+                <div className="flex items-center gap-2 pt-1">
                   <input
                     id="rememberMe"
                     type="checkbox"
-                    className="w-4 h-4 bg-slate-950 border-slate-700 text-green-600 rounded cursor-pointer focus:ring-green-500 focus:ring-offset-black"
+                    className="w-3.5 h-3.5 bg-surface-deep border-border text-primary rounded cursor-pointer"
                     {...register('rememberMe')}
                   />
                   <Label
                     htmlFor="rememberMe"
-                    className="text-slate-400 text-sm font-normal cursor-pointer hover:text-slate-300"
+                    className="text-xs text-muted-foreground font-normal cursor-pointer hover:text-foreground"
                   >
-                    Keep me signed in for 7 days
+                    Remember session on this workstation
                   </Label>
                 </div>
               )}
@@ -296,45 +279,47 @@ export function LoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-green-600 hover:bg-green-700 text-black font-semibold rounded-xl shadow-lg shadow-green-900/30 border-0 mt-4"
+                className="w-full h-9 text-xs font-medium mt-2"
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isRegistering ? 'Creating account...' : 'Signing in...'}
+                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                    {isRegistering ? 'Creating account...' : 'Authenticating...'}
                   </>
                 ) : isRegistering ? (
-                  'Create Account'
+                  'Create Clinician Account'
                 ) : (
                   'Sign In'
                 )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-slate-500">
-                To request an account, contact your system administrator.
-              </p>
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                {isRegistering
+                  ? 'Already registered? Sign in instead.'
+                  : 'Need a local testing account? Register here.'}
+              </button>
             </div>
-
-
           </div>
 
           {/* Footer */}
-          <div className="px-8 pb-6 text-center">
+          <div className="px-6 py-3 border-t border-border bg-surface-deep/50 text-center">
             <Link
               to="/"
-              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              ← Back to home
+              <ArrowLeft className="w-3 h-3" /> Back to overview
             </Link>
           </div>
-        </motion.div>
+        </div>
 
-        <p className="text-center text-green-500/50 text-xs mt-6">
-          Access is restricted to authorized clinical staff only.
-          <br />
-          For support, contact your system administrator.
+        <p className="text-center text-[11px] text-muted-foreground mt-4">
+          CardioRetina v1.4.0 · Local Secure Clinical Diagnostics
         </p>
       </div>
     </div>

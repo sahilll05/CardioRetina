@@ -34,30 +34,40 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onCancel}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[420px] bg-surface border-border-strong text-foreground">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-1">
             {variant === 'destructive' && (
-              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600" />
+              <div className="w-8 h-8 rounded border border-destructive/30 bg-destructive/10 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-4 h-4 text-destructive" />
               </div>
             )}
-            <DialogTitle>{title}</DialogTitle>
+            <DialogTitle className="text-sm font-medium">{title}</DialogTitle>
           </div>
-          <DialogDescription className="text-left">{description}</DialogDescription>
+          <DialogDescription className="text-left text-xs text-muted-foreground leading-relaxed">
+            {description}
+          </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+        <DialogFooter className="gap-2 sm:gap-0 pt-3 border-t border-border">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={isLoading}
+            className="text-xs h-8"
+          >
             {cancelLabel}
           </Button>
           <Button
             type="button"
             variant={variant}
+            size="sm"
             onClick={onConfirm}
             disabled={isLoading}
-            className={variant === 'destructive' ? 'bg-red-600 hover:bg-red-700' : ''}
+            className="text-xs h-8"
           >
-            {isLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+            {isLoading && <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />}
             {confirmLabel}
           </Button>
         </DialogFooter>

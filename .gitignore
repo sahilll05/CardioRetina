@@ -1,38 +1,68 @@
-# Node
+# Node & Frontend Build
 node_modules/
 dist/
-.env
+.npm/
 
-# Python
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.cert
+*.crt
+
+# Python & Virtual Environments
 __pycache__/
 *.py[cod]
 *$py.class
 venv/
 env/
-.env
+.venv/
+*.egg-info/
 
-# Backend specific
+# Logs & Diagnostics
+*.log
+logs/
+training/logs.*
+
+# Backend Uploads & Reports (Keep directory structure with .gitkeep)
 backend/uploads/*
 !backend/uploads/.gitkeep
 backend/reports/*
 !backend/reports/.gitkeep
-backend/ml/weights/*.pth
 
-# IDE / OS
+# Model Weights & Checkpoints (Do NOT expose trained weights or models)
+backend/ml/weights/*
+!backend/ml/weights/.gitkeep
+*.pth
+*.pt
+*.onnx
+*.h5
+*.bin
+*.ckpt
+*.pkl
+*.pb
+*.tflite
+*.safetensors
+
+# Datasets (Training, evaluation, raw images)
+training/datasets/
+data/
+datasets/
+
+# Project internal documents & research
+documents/
+research/
+# Note: docs/ is intentionally NOT ignored — it contains README diagrams/screenshots
+
+# Tool & Editor Metadata
 .vscode/
 .idea/
 .DS_Store
+.hallmark/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# Project documents (internal/private)
-documents/
-research/
-# Note: docs/ is intentionally NOT ignored — it contains README screenshots
-
-# Datasets & Weights
-training/datasets/
-*.pth
