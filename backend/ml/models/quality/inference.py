@@ -36,7 +36,7 @@ class QualityInference:
         Predict image quality
         Returns: dict with quality_score and is_gradable
         """
-        with torch.no_grad():
+        with torch.inference_mode():
             # Preprocess
             img_tensor = self.preprocessor.preprocess(image_path)
             img_tensor = img_tensor.to(self.device)
@@ -46,10 +46,12 @@ class QualityInference:
             probabilities = F.softmax(outputs, dim=1)
             
             # Get gradable probability (class 1)
-            quality_score = probabilities[0][1].item()
-            is_gradable = quality_score > 0.5
+            quality_score = float(probabilities[0][1].item())
+            is_gradable = bool(quality_score > 0.5)
+
+            del img_tensor, outputs, probabilities
             
             return {
-                "quality_score": float(quality_score),
-                "is_gradable": bool(is_gradable)
+                "quality_score": quality_score,
+                "is_gradable": is_gradable
             }

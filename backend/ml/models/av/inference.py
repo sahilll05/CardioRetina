@@ -50,7 +50,7 @@ class AVInference:
         
         Returns: dict with artery_mask, vein_mask, class_map
         """
-        with torch.no_grad():
+        with torch.inference_mode():
             # Preprocess
             img_tensor, original_size = self.preprocess(image_path)
             img_tensor = img_tensor.to(self.device)
@@ -63,6 +63,7 @@ class AVInference:
             
             # Convert to numpy
             output = output.squeeze().cpu().numpy()  # (3, H, W)
+            del img_tensor
             
             # Resize vessel mask to match output
             vessel_mask_resized = cv2.resize(

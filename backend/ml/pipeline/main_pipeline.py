@@ -1,10 +1,34 @@
 import os
 import cv2
 import numpy as np
+import gc
+import torch
 from datetime import datetime
 from ml.features.biomarkers import BiomarkerExtractor
 from ml.risk.risk_engine import RiskEngine
 from app.config import settings
+
+# Enforce single-threaded execution for PyTorch on CPU to prevent workspace duplication
+torch.set_num_threads(1)
+try:
+    torch.set_num_interop_threads(1)
+except RuntimeError:
+    pass
+
+def force_cleanup():
+    """
+    Aggressive memory cleanup that releases memory both in Python and back to the OS kernel.
+    On Linux, Python's gc.collect() does not immediately release virtual memory back to the OS;
+    glibc caches the arenas. malloc_trim(0) forces glibc to release all unmapped pages to Linux.
+    """
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    try:
+        import ctypes
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except Exception:
+        pass
 
 class MainPipeline:
     """Main AI pipeline orchestrator"""
@@ -40,7 +64,8 @@ class MainPipeline:
             
             # Aggressive memory cleanup
             del self.quality_model
-            import gc; gc.collect()
+            self.quality_model = None
+            force_cleanup()
             
             if not quality_result["is_gradable"]:
                 results["status"] = "failed"
@@ -60,7 +85,8 @@ class MainPipeline:
             
             # Aggressive memory cleanup
             del self.vessel_model
-            gc.collect()
+            self.vessel_model = None
+            force_cleanup()
             
             # STEP 3: A/V Classification
             print("[INFO] Step 3: A/V Classification")
@@ -77,7 +103,8 @@ class MainPipeline:
             
             # Aggressive memory cleanup
             del self.av_model
-            gc.collect()
+            self.av_model = None
+            force_cleanup()
             
             # STEP 4: Biomarker Extraction
             print("[INFO] Step 4: Biomarker Extraction")
@@ -96,7 +123,8 @@ class MainPipeline:
             
             # Aggressive memory cleanup
             del self.disease_model
-            gc.collect()
+            self.disease_model = None
+            force_cleanup()
             
             # STEP 6: Risk Assessment
             print("[INFO] Step 6: Risk Assessment")

@@ -44,7 +44,7 @@ class VesselInference:
         Predict vessel segmentation
         Returns: dict with probability_mask and binary_mask
         """
-        with torch.no_grad():
+        with torch.inference_mode():
             # Preprocess
             img_tensor, original_size = self.preprocess(image_path)
             img_tensor = img_tensor.to(self.device)
@@ -56,6 +56,8 @@ class VesselInference:
             probability_mask, binary_mask = self.postprocessor.postprocess(
                 output, original_size
             )
+
+            del img_tensor, output
             
             return {
                 "probability_mask": probability_mask,

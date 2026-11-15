@@ -55,26 +55,6 @@ def publish_progress(job_id: str, status: str, progress: int, message: str):
         print(f"[WARN] Failed to publish progress to Redis: {e}")
 
 
-# ─── Global ML Models (Loaded Once Per Worker) ────────────────────────────────
-_models = {}
-
-def get_models():
-    """Get or load ML models into the Celery worker process."""
-    if not _models:
-        from ml.models.quality.inference import QualityInference
-        from ml.models.vessel.inference import VesselInference
-        from ml.models.av.inference import AVInference
-        from ml.models.disease.inference import DiseaseInference
-        
-        _models['quality'] = QualityInference()
-        _models['vessel'] = VesselInference()
-        _models['av'] = AVInference()
-        _models['disease'] = DiseaseInference()
-        print("[OK] Models loaded in worker process")
-    
-    return _models
-
-
 # ─── Celery Task ──────────────────────────────────────────────────────────────
 @celery_app.task(bind=True, max_retries=3)
 def run_analysis_pipeline(self, job_id: str, image_path: str, clinical_data: dict):

@@ -44,7 +44,7 @@ class DiseaseInference:
         Predict DR grade
         Returns: dict with dr_grade, dr_probability, class_probabilities
         """
-        with torch.no_grad():
+        with torch.inference_mode():
             # Preprocess
             img_tensor = self.preprocessor.preprocess(image_path)
             img_tensor = img_tensor.to(self.device)
@@ -57,6 +57,8 @@ class DiseaseInference:
             class_probs = probabilities[0].cpu().numpy().tolist()
             dr_grade = int(probabilities.argmax().item())
             dr_probability = float(probabilities[0][dr_grade].item())
+
+            del img_tensor, outputs, probabilities
             
             return {
                 "dr_grade": dr_grade,
