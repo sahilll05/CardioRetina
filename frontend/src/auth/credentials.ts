@@ -18,8 +18,8 @@ export async function verifyCredentials(
 ): Promise<{ user: CredentialUser; token: string }> {
   // 1. Authenticate to get the token using OAuth2 form data
   const formData = new URLSearchParams();
-  formData.append('username', email);
-  formData.append('password', password);
+  formData.append('username', (email || '').trim().toLowerCase());
+  formData.append('password', (password || '').trim());
 
   const loginResponse = await api.post('/auth/login', formData, {
     headers: {

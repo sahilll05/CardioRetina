@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 
 from app.database import get_db
 from app.models.user import User
@@ -58,13 +58,23 @@ async def login(
     db: AsyncSession = Depends(get_db),
 ):
     """Authenticate with email + password. Returns JWT tokens."""
-    result = await db.execute(select(User).where(User.email == form_data.username))
+    username = (form_data.username or "").strip().lower()
+    password = (form_data.password or "").strip()
+
+    result = await db.execute(select(User).where(func.lower(User.email) == username))
     user = result.scalar_one_or_none()
 
-    if not user or not verify_password(form_data.password, user.hashed_password):
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Account not found with this email",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not verify_password(password, user.hashed_password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

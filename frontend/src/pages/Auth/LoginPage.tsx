@@ -109,7 +109,8 @@ export function LoginPage() {
 
           navigate(from, { replace: true });
         } catch (e: any) {
-          setAuthError(e.message || 'Invalid email or password.');
+          const serverMsg = e.response?.data?.detail;
+          setAuthError(typeof serverMsg === 'string' ? serverMsg : e.message || 'Invalid email or password.');
           setIsLoading(false);
           return;
         }
