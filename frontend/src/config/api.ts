@@ -1,7 +1,9 @@
 import axios from 'axios';
 import { useAuthStore } from '@/auth/authStore';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const rawBase = (import.meta.env.VITE_API_URL || 'http://localhost:8000').trim().replace(/\/+$/, '');
+// Normalize: if user provided URL with /api/v1, strip it so API_BASE_URL is clean and API_URL doesn't double-nest
+export const API_BASE_URL = rawBase.endsWith('/api/v1') ? rawBase.slice(0, -7) : rawBase;
 export const API_URL = `${API_BASE_URL}/api/v1`;
 
 export const api = axios.create({
