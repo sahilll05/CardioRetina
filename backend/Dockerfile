@@ -38,6 +38,5 @@ COPY . .
 # Expose the API port
 EXPOSE 8000
 
-# Default command (Starts the FastAPI server)
-# Note: In Railway, we will override this command for the Celery ML Worker service.
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command (Starts the FastAPI server, honoring cloud PORT env var like on Render)
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

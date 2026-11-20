@@ -39,6 +39,13 @@ async def lifespan(app: FastAPI):
     async with async_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    # Automatically ensure default organization & admin exist
+    try:
+        from scripts.create_admin import create_admin
+        await create_admin()
+    except Exception as e:
+        print(f"[INFO] Auto admin initialization note: {e}")
+
     # We no longer load ML models into app.state globally on startup.
     # This frees up ~350MB of RAM, allowing the Celery tasks to lazy-load them
     # sequentially without hitting OOM kills on Railway.
@@ -70,6 +77,7 @@ app.add_middleware(
         "http://localhost:5173", 
         "https://cardioretina.vercel.app"
     ],
+    allow_origin_regex=r"https://.*\.vercel\.app|http://localhost:\d+",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
