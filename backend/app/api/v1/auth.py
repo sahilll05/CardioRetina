@@ -157,3 +157,17 @@ async def setup_mfa(
     await db.commit()
     uri = get_totp_uri(secret, current_user.email)
     return MFASetupResponse(secret=secret, uri=uri)
+
+
+# ─── Seed Admin Endpoint ──────────────────────────────────────────────────────
+@router.get("/seed-admin")
+async def seed_admin_endpoint():
+    """Seed or reset default admin user directly via browser endpoint."""
+    from scripts.create_admin import create_admin
+    await create_admin()
+    return {
+        "status": "success",
+        "message": "Default admin account initialized",
+        "email": "admin@cardioretina.ai",
+        "password": "admin@123"
+    }
